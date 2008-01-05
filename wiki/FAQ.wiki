@@ -9,7 +9,7 @@ and supports the PNG-format instead of only GIF_
 ===Will the person I'm talking to see the rendered expression?===
 _Yes if he/she has a similiar plugin installed or if you send the image._
 
-===Why would i not want to send the image?===
+===Why wouldn't I want to send the image?===
 _The person you are talking to might have another background color or have some other settings for the image that he/she prefers.
 You also need to be in Direct IM mode in order to send images inside message.
 You most likely do not want to select this option._
