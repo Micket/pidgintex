@@ -115,14 +115,12 @@ static char* mathfont[] = {"tiny","footnotesize","normalsize","large",
 //    char *message, PurpleMessageFlags messFlag, char *original);
 
 /* to intercept in- and outgoing messages */
-/*
 static gboolean message_write(PurpleAccount *account, const char *sender, char **message, 
     PurpleConversation *conv, PurpleMessageFlags flags);
-static gboolean message_send(PurpleAccount *account, const char *sender, char **message,
-    PurpleConversation *conv, PurpleMessageFlags flags);
-static gboolean message_wrote(PurpleAccount *account, const char *sender, 
+static void message_wrote(PurpleAccount *account, const char *sender, 
     const char *message, PurpleConversation *conv, PurpleMessageFlags flags);
-*/
+static void message_send(PurpleAccount *account, const char *recipient, char **message);
+
 /* variables for callback functions */
 static gboolean logflag;
 static char *originalmsg;
@@ -135,7 +133,7 @@ static char *modifiedmsg;
  * returns the right full path, e.g. with the executable's name appended, 
  * NULL on failure, must be freed with free()
  */
-char* searchPATH(const char const *file);
+char* searchPATH(const char *file);
 
 /*
  * execute executes the *cmd.

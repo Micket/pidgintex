@@ -286,7 +286,7 @@ static void message_wrote(PurpleAccount *account, const char *sender,
     }
 }
 
-static void message_send(PurpleAccount *account, char *recipient, char **message, void *data)
+static void message_send(PurpleAccount *account, char *recipient, char **message)
 {
     //fprintf(stderr, "message_send = \n%s\n",*message);
     if (!(modifiedmsg = strdup(*message))) return;
