@@ -1,6 +1,9 @@
-*************
-Version 1.0
-*************
-	- Initial version
-	- Made pidgin-mimetex from pidgin-LaTeX
+= Details =
+Version 1.0.1
+  * Warning message when image can't be sent.
+  * Redesign of signal handling.
+  * Removed potential (but inlikely) memory leak.
 
+Version 1.0.0
+  * Initial version
+  * Made pidgin-mimetex from pidgin-LaTeX
