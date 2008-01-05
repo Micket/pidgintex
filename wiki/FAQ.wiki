@@ -6,7 +6,7 @@ _If you don't want to install latex and dvipng use mimeTeX.
 If you have latex then install dvipng and mathTeX since it renders better images
 and supports the PNG-format instead of only GIF_
 
-===Will the person i'm talking to see the expression?===
+===Will the person I'm talking to see the rendered expression?===
 _Yes if he/she has a similiar plugin installed or if you send the image._
 
 ===Why would i not want to send the image?===
