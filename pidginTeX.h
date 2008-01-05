@@ -75,9 +75,13 @@
 #define PREFS_FONT_SIZE  (PREFS_BASE "/fontsize")
 #define PREFS_FONT_COLOR (PREFS_BASE "/fontcolor")
 
-#ifndef MAX
-#define MAX(a,b) ( (a) > (b) ? (a) : (b))
-#endif
+//#ifndef MAX
+//#define MAX(a,b) ( (a) > (b) ? (a) : (b))
+//#endif
+
+/* font sizes for mathTeX */
+static char* mathfont[] = {"tiny","footnotesize","normalsize","large",
+                 "Large","LARGE","huge","Huge"};
 
 /* 
  * latex_to_image creates an image with the LaTeX code pointed by *latex
@@ -87,7 +91,7 @@
  *
  * returns TRUE on success, false otherwise
  */
-static gboolean latex_to_image(char *latex, char **file_img);
+//static gboolean latex_to_image(char *latex, char **file_img);
 
 /*
  * Transform *tmp2 extracting some *startdelim here *enddelim thing,
@@ -95,10 +99,10 @@ static gboolean latex_to_image(char *latex, char **file_img);
  *
  * returns TRUE on success, FALSE otherwise
  */
-static gboolean analyse(char **msg, char *startdelim, char *enddelim);
+//static gboolean analyse(char **msg, char *startdelim, char *enddelim);
 
 /*
- * pidgin_latex_write performs the effective write of the latex code in the IM windows
+ * log_write performs the effective write of the latex code in the IM windows
  * 	*conv is a pointer onto the conversation context
  *	*nom is the name of the correspondent
  *	*message is the modified message with the image
@@ -107,12 +111,22 @@ static gboolean analyse(char **msg, char *startdelim, char *enddelim);
  *
  * returns TRUE.
  */
-static gboolean pidgin_latex_write(PurpleConversation *conv, const char *nom, 
-    char *message, PurpleMessageFlags messFlag, char *original);
+//static void pidgin_latex_write(PurpleConversation *conv, const char *nom, 
+//    char *message, PurpleMessageFlags messFlag, char *original);
 
 /* to intercept in- and outgoing messages */
-static gboolean message_send(PurpleAccount *account, const char *who, char **buffer, 
+/*
+static gboolean message_write(PurpleAccount *account, const char *sender, char **message, 
     PurpleConversation *conv, PurpleMessageFlags flags);
+static gboolean message_send(PurpleAccount *account, const char *sender, char **message,
+    PurpleConversation *conv, PurpleMessageFlags flags);
+static gboolean message_wrote(PurpleAccount *account, const char *sender, 
+    const char *message, PurpleConversation *conv, PurpleMessageFlags flags);
+*/
+/* variables for callback functions */
+static gboolean logflag;
+static char *originalmsg;
+static char *modifiedmsg;
 
 /*
  * searchPATH searches the PATH-environment for the specified file file.

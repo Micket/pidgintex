@@ -21,14 +21,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-# Uncomment for windows
 CC = gcc
 STRIP = strip
 PLUGIN = pidginTeX
-PLUGIN_VERSION = 1.0.0
+PLUGIN_VERSION = 1.0.1
 
-ifdef MINGW
+ifdef CROSS
 ############ Windows ###########
+CC = $(CROSS)-$(CC)
 PIDGIN_TREE_TOP = ../pidgin-2.3.1
 PURPLE_TOP      = $(PIDGIN_TREE_TOP)/libpurple
 
@@ -37,6 +37,7 @@ PIDGIN_CFLAGS = \
 		-I$(PURPLE_TOP) \
 		-I$(PURPLE_TOP)/win32 \
 		$(shell pkg-config glib-2.0 --cflags)
+
 PIDGIN_LDFLAGS = -L$(PURPLE_TOP) -lpurple #-Lbin/ -lglib-2.0
 
 PLUGIN_FILE = $(PLUGIN).dll

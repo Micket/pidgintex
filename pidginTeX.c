@@ -47,9 +47,9 @@ static void open_log(PurpleConversation *conv)
 void win32_purple_notify_error(char *prep)
 {
     char *errmsg=NULL;
-    char *finalmsg=NULL;
+    char *finalmsg;
     if(!FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, 
-                GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (void*)&errmsg, 0, NULL))
+        GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (void*)&errmsg, 0, NULL))
     {
         purple_notify_error(NULL, PLUGIN_NAME,"Can't display error message.", NULL);
         return;
@@ -57,75 +57,59 @@ void win32_purple_notify_error(char *prep)
 
     if(prep)
     {
-        finalmsg=malloc((strlen(errmsg)+ strlen(prep) + 3)*sizeof(char));
+        finalmsg = g_printf_strdup("%s: %s",errmsg,prep);
+        LocalFree(errmsg);
         if(!finalmsg)
         {
             purple_notify_error(NULL, PLUGIN_NAME, "Can't display error message.", NULL);
-            LocalFree(errmsg); /* we can't do anything more for you */
             return;
         }
-        strcpy(finalmsg, prep);
-        strcat(finalmsg, ": ");
-        strcat(finalmsg, errmsg);
-        LocalFree(errmsg);
     }
     else
-    {
-        finalmsg = malloc((strlen(errmsg)+1)*sizeof(char));
-        if(!finalmsg)
-        {
-            purple_notify_error(NULL, PLUGIN_NAME, "Can't display error message.", NULL);
-            LocalFree(errmsg); /* we can't do anything more for you */
-            return;
-        }
-        strcpy(finalmsg, errmsg);
-        LocalFree(errmsg);
-    }
+        finalmsg = errmsg;
     purple_notify_error(NULL, PLUGIN_NAME, finalmsg, NULL);
     free(finalmsg);
     return;
 }
 #endif
 
-char* searchPATH(const char const *file)
+char* searchPATH(const char *file)
 {
-    char *cmd=NULL;
 #ifdef _WIN32
+    char *cmd;
     DWORD sz = SearchPath(NULL, file, ".exe", 0, cmd, NULL);
     if (cmd = malloc(sz+1))
-    {
         if (!SearchPath(NULL, file, ".exe", sz+1, cmd, NULL));
         {
             free(cmd);
             cmd=NULL;
         }
-    }
-#else
-    cmd = g_strdup(file);
-#endif
     return cmd;
+#else
+    return g_strdup(file);
+#endif
 }
 
 static int execute(char *cmd)
 {
 #ifdef _WIN32
-    int exitcode = 0;
+    DWORD exitcode = 0;
     STARTUPINFO sup;
     PROCESS_INFORMATION pi;
     ZeroMemory( &sup, sizeof(sup) );
-    ZeroMemory( &pi,   sizeof(pi) );
+    ZeroMemory( &pi,  sizeof(pi) );
     sup.cb          = sizeof(sup);
     sup.wShowWindow = SW_HIDE;
     sup.dwFlags     = STARTF_USESHOWWINDOW;
 
-    if(!CreateProcess(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &sup, &pi))
+    if (!CreateProcess(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &sup, &pi))
     {
         win32_purple_notify_error(cmd);
         free(cmd);
         return -1;
     }
     free(cmd);
-    if(WAIT_OBJECT_0!=WaitForSingleObjectEx(pi.hProcess, INFINITE, FALSE))
+    if (WAIT_OBJECT_0!=WaitForSingleObjectEx(pi.hProcess, INFINITE, FALSE))
     {
         win32_purple_notify_error(cmd);
         CloseHandle(pi.hProcess);
@@ -134,7 +118,7 @@ static int execute(char *cmd)
     }
     do
     {
-        if(!GetExitCodeThread(pi.hThread, &exitcode))
+        if (!GetExitCodeThread(pi.hThread, &exitcode))
         {
             win32_purple_notify_error(cmd);
             return -1;
@@ -149,15 +133,13 @@ static int execute(char *cmd)
 #endif
 }
 
-static char* mathfont[] = {"tiny","footnotesize","normalsize","large",
-                 "Large","LARGE","huge","Huge"};
-static gboolean latex_to_image(char *latex, char **file_img)
+static gboolean latex_to_image(char *tex, char **file_img)
 {
     // the following is new and related to temporary-filename-generation
     FILE* tmpfile = purple_mkstemp(file_img,TRUE);
     if(!*file_img)
     {
-        purple_notify_error(NULL, PLUGIN_NAME, "Couldn't creat temporary file", NULL);
+        purple_notify_error(NULL, PLUGIN_NAME, "Couldn't create temporary file", NULL);
         unlink(*file_img);
         free(*file_img);
         return FALSE;
@@ -175,38 +157,30 @@ static gboolean latex_to_image(char *latex, char **file_img)
 
     // Build the options the options
     int  fontsize   = purple_prefs_get_int(PREFS_FONT_SIZE);
-    char *prepend   = (char*)purple_prefs_get_string(PREFS_PREPEND);
-    char *fontcolor = (char*)purple_prefs_get_string(PREFS_FONT_COLOR);
-    char *style     = (char*)purple_prefs_get_string(PREFS_STYLE);
-    char *reverse   = purple_prefs_get_bool(PREFS_NEGATE) ? "\\reverse" : "";
-    char *smash     = (char*)purple_prefs_get_string(PREFS_SMASH);
+    const char *prepend   = purple_prefs_get_string(PREFS_PREPEND);
+    const char *fontcolor = purple_prefs_get_string(PREFS_FONT_COLOR);
+    const char *style     = purple_prefs_get_string(PREFS_STYLE);
+    const char *reverse   = purple_prefs_get_bool(PREFS_NEGATE) ? "\\reverse" : "";
+    const char *smash     = purple_prefs_get_string(PREFS_SMASH);
     char* cmdparam;
 
+    int usecolor = strlen(fontcolor);
     if (!strcmp(renderer, "mimetex"))
     {
-        if (strlen(fontcolor))
-            cmdparam = g_strdup_printf(
-                "\"%s\" -d -s %d \"\\%s%s%s%s{%s %s}\" > %s", \
-                cmdTeX, fontsize, fontcolor, reverse, style, smash, prepend, latex, *file_img);
-        else
-            cmdparam = g_strdup_printf(
-                "\"%s\" -d -s %d \"%s%s%s{%s %s}\" > %s", \
-                cmdTeX, fontsize, reverse, style, smash, prepend, latex, *file_img);
+        cmdparam = g_strdup_printf("\"%s\" -d -s %d \"%s%s%s%s%s{%s %s}\" > %s",
+            cmdTeX, fontsize, usecolor ? "\\":"", usecolor ? fontcolor:"", 
+            reverse, style, smash, prepend, tex, *file_img);
     }
     else //if (!strcmp(renderer,"mathtex"))
     {
-        if (strlen(fontcolor))
-            cmdparam = g_strdup_printf( \
-                "\"%s\" -m 0 \"\\png\\usepackage{color}\\color{%s}%s\\%s %s %s\" -o %s", \
-                cmdTeX, fontcolor, style, mathfont[fontsize], prepend, latex, *file_img);
-        else
-            cmdparam = g_strdup_printf( \
-                "\"%s\" -m 0 \"\\png%s%s\\%s %s %s\" -o %s", \
-                cmdTeX, style, mathfont[fontsize], prepend, latex, *file_img);
+        cmdparam = g_strdup_printf( 
+            "\"%s\" -m 0 \"\\png\\usepackage{color}\\color{%s}%s\\%s %s %s\" -o %s",
+            cmdTeX, usecolor ? fontcolor : "black", style,
+            mathfont[fontsize], prepend, tex, *file_img);
     }
     free(cmdTeX);
 
-    fprintf(stderr, "%s\n",cmdparam);
+    //fprintf(stderr, "%s\n",cmdparam);
     if(execute(cmdparam))
     {
         purple_notify_error(NULL, PLUGIN_NAME, "Failed to execute command.", NULL);
@@ -222,13 +196,14 @@ static gboolean latex_to_image(char *latex, char **file_img)
         unlink(*file_img);
         free(*file_img);
         *file_img = file_img2;
-    } 
+    }
     return TRUE;
 }
 
 static gboolean analyse(char **msg, char *startdelim, char *enddelim)
 {
-    char *ptr1, *ptr2;
+    int imgcounter = 0;
+    char *ptr1, *ptr2 = NULL;
     while(ptr1 = strstr(*msg, startdelim))
     {
         char *tex, *file_img;
@@ -241,21 +216,21 @@ static gboolean analyse(char **msg, char *startdelim, char *enddelim)
         if (!(ptr2 = strstr(tex, enddelim))) return FALSE;
         *ptr2 = '\0';
 
-        // Creates the image in file_img
         if (!latex_to_image(tex, &file_img)) { *ptr2 = *startdelim; return FALSE; };
-        // loading image
+
         if (!g_file_get_contents(file_img, &filedata, &size, &error))
         {
-            purple_notify_error(NULL, "pidginTeX", error->message, NULL);
+            purple_notify_error(NULL, PLUGIN_NAME, error->message, NULL);
             g_error_free(error);
             *ptr2 = *startdelim;
             return FALSE;
         }
-        if (strcmp(purple_prefs_get_string(PREFS_RENDERER),"mathtex"))
-            unlink(file_img);
+        unlink(file_img);
         free(file_img);
 
-        int idimg = purple_imgstore_add_with_id(filedata, size, "pidginTeX");
+        char* name = g_strdup_printf("pidginTeX-%s-%d.png",purple_date_format_long(NULL),imgcounter++);
+        int idimg = purple_imgstore_add_with_id(filedata, size, name);
+        free(name);
         if (idimg == 0)
         {
             purple_notify_error(NULL, PLUGIN_NAME, "Failed to store image.", NULL);
@@ -265,81 +240,67 @@ static gboolean analyse(char **msg, char *startdelim, char *enddelim)
 
         *ptr1 = '\0';
         char* tmpmsg;
-        if (purple_prefs_get_bool(PREFS_PRINTEXPR))
-            tmpmsg = g_strdup_printf("%s<img id=\"%d\"> %s%s",
-                *msg,idimg,tex,&ptr2[strlen(enddelim)]);
-        else
-            tmpmsg = g_strdup_printf("%s<img id=\"%d\">%s",
-                *msg,idimg,&ptr2[strlen(enddelim)]);
+        tmpmsg = g_strdup_printf("%s<img id=\"%d\" alt=\"%s\"> %s%s", *msg,idimg,tex,
+                purple_prefs_get_bool(PREFS_PRINTEXPR) ? tex : "", &ptr2[strlen(enddelim)]);
         free(*msg);
         *msg = tmpmsg;
     }
     return TRUE;
 }
 
-static gboolean pidgin_latex_write(PurpleConversation *conv, const char *nom, 
-        char *newmsg, PurpleMessageFlags messFlag, char *originalmsg)
+static gboolean message_write(PurpleAccount *account, const char *sender, 
+    char **message, PurpleConversation *conv, PurpleMessageFlags flags)
 {
-    gboolean logflag = purple_conversation_is_logging(conv);
-
-    if (logflag)
+    //fprintf(stderr, "message_write = \n%s\n",*message);
+    if (modifiedmsg)
     {
-        GList *log;
+        logflag = purple_conversation_is_logging(conv);
+        purple_conversation_set_logging(conv, FALSE);
+        originalmsg = *message;
+        *message    = modifiedmsg;
+        modifiedmsg = NULL;
+        if (conv->features & PURPLE_CONNECTION_NO_IMAGES && purple_prefs_get_bool(PREFS_SENDIMAGE))
+            purple_notify_warning(NULL, PLUGIN_NAME, 
+                "Image was NOT sent, this conversation does not support images.", NULL);
+    }
+    return FALSE;
+}
+
+static void message_wrote(PurpleAccount *account, const char *sender, 
+    const char *message, PurpleConversation *conv, PurpleMessageFlags flags)
+{
+    //fprintf(stderr, "message_wrote = \n%s\n",message);
+    if (originalmsg && logflag)
+    {
+        purple_conversation_set_logging(conv, logflag);
         if (!conv->logs)
             open_log(conv);
-        log = conv->logs;
+        GList *log = conv->logs;
         while (log)
         {
-            purple_log_write((PurpleLog *)log->data, messFlag, nom, time(NULL), originalmsg);
+            purple_log_write((PurpleLog *)log->data, flags, sender, time(NULL), originalmsg);
             log = log->next;
         }
-        purple_conversation_set_logging(conv,FALSE);
+        free(originalmsg);
+        originalmsg = NULL;
     }
-
-    if      (purple_conversation_get_type(conv) == PURPLE_CONV_TYPE_CHAT)
-        purple_conv_chat_write(PURPLE_CONV_CHAT(conv), nom, newmsg, messFlag, time(NULL));
-    else if (purple_conversation_get_type(conv) == PURPLE_CONV_TYPE_IM)
-        purple_conv_im_write(  PURPLE_CONV_IM(conv),   nom, newmsg, messFlag, time(NULL));
-
-    if (logflag)
-        purple_conversation_set_logging(conv,TRUE);
-
-    return TRUE;
 }
 
-static gboolean message_write(PurpleAccount *account, const char *who, 
-        char **buffer, PurpleConversation *conv, PurpleMessageFlags flags)
+static void message_send(PurpleAccount *account, char *recipient, char **message, void *data)
 {
-    char *tmp;
-    if (!strstr(*buffer,TEX_DELIMITER) || !(tmp = strdup(*buffer))) 
-        return FALSE;
-
-    //fprintf(stderr, "Modify log = \n%s\n",*buffer);
-
-    if (analyse(&tmp, TEX_DELIMITER, TEX_DELIMITER) )
+    //fprintf(stderr, "message_send = \n%s\n",*message);
+    if (!(modifiedmsg = strdup(*message))) return;
+    else if (strstr(modifiedmsg, TEX_DELIMITER) && 
+        analyse(&modifiedmsg, TEX_DELIMITER, TEX_DELIMITER))
     {
-        //fprintf(stderr, "Writing log\n");
-        pidgin_latex_write(conv, who, tmp, flags, *buffer);
-        //free(*buffer);
-        //*buffer = tmp;
-        free(tmp);
-        return TRUE;
+        if (purple_prefs_get_bool(PREFS_SENDIMAGE))
+            *message = strdup(modifiedmsg);
     }
-    free(tmp);
-    return FALSE;
-}
-
-static gboolean message_send(PurpleAccount *account, const char *who, 
-        char **buffer, PurpleConversation *conv, PurpleMessageFlags flags)
-{
-    //fprintf(stderr, "Modify message = \n%s\n",*buffer);
-    if (purple_prefs_get_bool(PREFS_SENDIMAGE) && strstr(*buffer,TEX_DELIMITER)
-        && analyse(buffer, TEX_DELIMITER, TEX_DELIMITER))
+    else
     {
-        flags |= PURPLE_MESSAGE_IMAGES;
+        free(modifiedmsg);
+        modifiedmsg = NULL;
     }
-    //fprintf(stderr, "Sending = \n%s\n",*buffer); 
-    return FALSE;
 }
 
 static gboolean plugin_load(PurplePlugin *plugin)
@@ -347,9 +308,12 @@ static gboolean plugin_load(PurplePlugin *plugin)
     void *conv_handle = purple_conversations_get_handle();
     purple_signal_connect(conv_handle, "writing-im-msg",   plugin, PURPLE_CALLBACK(message_write), NULL);
     purple_signal_connect(conv_handle, "writing-chat-msg", plugin, PURPLE_CALLBACK(message_write), NULL);
+    purple_signal_connect(conv_handle, "wrote-im-msg",     plugin, PURPLE_CALLBACK(message_wrote), NULL);
+    purple_signal_connect(conv_handle, "wrote-chat-msg",   plugin, PURPLE_CALLBACK(message_wrote), NULL);
     purple_signal_connect(conv_handle, "sending-im-msg",   plugin, PURPLE_CALLBACK(message_send), NULL);
     purple_signal_connect(conv_handle, "sending-chat-msg", plugin, PURPLE_CALLBACK(message_send), NULL);
     purple_debug(PURPLE_DEBUG_INFO, PLUGIN_NAME, PLUGIN_NAME " loaded\n");
+    modifiedmsg = NULL;
     return TRUE;
 }
 
@@ -358,6 +322,8 @@ static gboolean plugin_unload(PurplePlugin * plugin)
     void *conv_handle = purple_conversations_get_handle();
     purple_signal_disconnect(conv_handle, "writing-im-msg",   plugin, PURPLE_CALLBACK(message_write));
     purple_signal_disconnect(conv_handle, "writing-chat-mg",  plugin, PURPLE_CALLBACK(message_write));
+    purple_signal_disconnect(conv_handle, "wrote-im-msg",     plugin, PURPLE_CALLBACK(message_wrote));
+    purple_signal_disconnect(conv_handle, "wrote-chat-msg",   plugin, PURPLE_CALLBACK(message_wrote));
     purple_signal_disconnect(conv_handle, "sending-im-msg",   plugin, PURPLE_CALLBACK(message_send));
     purple_signal_disconnect(conv_handle, "sending-chat-msg", plugin, PURPLE_CALLBACK(message_send));
     return TRUE;
@@ -367,11 +333,9 @@ static PurplePluginPrefFrame * get_plugin_pref_frame(PurplePlugin *plugin)
 {
     PurplePluginPrefFrame *frame = purple_plugin_pref_frame_new();
     PurplePluginPref *ppref;
-    
 
-    ppref = purple_plugin_pref_new_with_label(
-            "All of these choices will only change your image, not your message.");
-    purple_plugin_pref_frame_add(frame, ppref);
+    purple_plugin_pref_frame_add(frame,purple_plugin_pref_new_with_label(
+                "All of these choices will only change your image, not your message."));
 
     // Do send image
     ppref = purple_plugin_pref_new_with_name_and_label(
@@ -394,8 +358,9 @@ static PurplePluginPrefFrame * get_plugin_pref_frame(PurplePlugin *plugin)
             "Print the expression along with the image");
     purple_plugin_pref_frame_add(frame, ppref);
 
-    ppref = purple_plugin_pref_new_with_label("Only mimeTeX");
-    purple_plugin_pref_frame_add(frame, ppref);
+    purple_plugin_pref_frame_add(frame,purple_plugin_pref_new_with_label(
+                "Only mimeTeX"));
+
     // Reverse image
     ppref = purple_plugin_pref_new_with_name_and_label(
             PREFS_NEGATE,
@@ -412,9 +377,9 @@ static PurplePluginPrefFrame * get_plugin_pref_frame(PurplePlugin *plugin)
     purple_plugin_pref_add_choice(ppref, "No smash", "\\nosmash");
     purple_plugin_pref_frame_add(frame, ppref);
 
-    
-    ppref = purple_plugin_pref_new_with_label("For both renderers");
-    purple_plugin_pref_frame_add(frame, ppref);
+    purple_plugin_pref_frame_add(frame,purple_plugin_pref_new_with_label(
+                "For both renderers"));
+
     // Font size
     ppref = purple_plugin_pref_new_with_name_and_label(
             PREFS_FONT_SIZE,
@@ -455,7 +420,7 @@ static PurplePluginPrefFrame * get_plugin_pref_frame(PurplePlugin *plugin)
     purple_plugin_pref_add_choice(ppref, "Green",   "green");
     purple_plugin_pref_add_choice(ppref, "Magenta", "magenta");
     purple_plugin_pref_frame_add(frame, ppref);
-    
+
     // Prepend
     ppref = purple_plugin_pref_new_with_name_and_label(
             PREFS_PREPEND,
