@@ -7,6 +7,7 @@ Make sure the binary is named mimetex and that it's placed in some directory inc
   * Compile with gcc -DAA -DGIF -lm mimetex.c gifsave.c -o mimetex
   * Move mimetex to folder within PATH.
 
+For a global installation of mimetex you can do the following sequence as root:
 {{{
 mkdir tempdir
 cd tempdir
