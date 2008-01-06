@@ -1,6 +1,7 @@
 #summary Installation instructions for the renderers.
 #labels Featured,Phase-Deploy
 =mimeTeX=
+Make sure the binary is named mimetex and that it's placed in some directory included in your path.
   * Download mimetex.zip from www.forkosh.com
   * Unzip into a folder (warning for zip-bomb)
   * Compile with gcc -DAA -DGIF -lm mimetex.c gifsave.c -o mimetex
