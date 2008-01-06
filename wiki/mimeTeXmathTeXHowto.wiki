@@ -1,6 +1,9 @@
 #summary Installation instructions for the renderers.
 #labels Featured,Phase-Deploy
 =mimeTeX=
+mimeTeX might be in some repositories, but that might be an old version (usually 1.50).
+In order to use colors and some other things you need 1.64.
+
 Make sure the binary is named mimetex and that it's placed in some directory included in your path.
   * Download mimetex.zip from www.forkosh.com
   * Unzip into a folder (warning for zip-bomb)
