@@ -22,8 +22,8 @@ rm -r tempdir
 Make sure the binary is named mathtex and that it's placed in some directory included in your path.
   * Download mathtex.zip from www.forkosh.com
   * Unzip into a folder (warning for zip-bomb)
-  * Compile with `gcc -DLATEX=\"/path/to/latex\" -DDVIPNG=\"/path/to/dvipng\" -o mathtex` or
-  * Compile with `gcc -DLATEX=\"/path/to/latex\" -DVIPS=\"/path/to/dvips\" -o mathtex`
+  * Compile with `cc -DLATEX=\"/path/to/latex\" -DDVIPNG=\"/path/to/dvipng\" -o mathtex` or
+  * Compile with `cc -DLATEX=\"/path/to/latex\" -DVIPS=\"/path/to/dvips\" -o mathtex`
   * Move mathtex to folder within PATH.
 
 
