@@ -57,7 +57,7 @@ void win32_purple_notify_error(char *prep)
 
     if(prep)
     {
-        finalmsg = g_printf_strdup("%s: %s",errmsg,prep);
+        finalmsg = g_strdup_printf("%s: %s",errmsg,prep);
         LocalFree(errmsg);
         if(!finalmsg)
         {
@@ -183,7 +183,10 @@ static gboolean latex_to_image(char *tex, char **file_img)
     //fprintf(stderr, "%s\n",cmdparam);
     if(execute(cmdparam))
     {
-        purple_notify_error(NULL, PLUGIN_NAME, "Failed to execute command.", NULL);
+        char *err_msg = g_strdup_printf("Failed to execute command: %s."
+            " Make sure you have it installed or change renderer.",cmdTeX); 
+        purple_notify_error(NULL, PLUGIN_NAME, err_msg, NULL);
+        free(err_msg);
         free(cmdparam);
         return FALSE;
     }
@@ -251,7 +254,18 @@ static gboolean analyse(char **msg, char *startdelim, char *enddelim)
 static gboolean message_write(PurpleAccount *account, const char *sender, 
     char **message, PurpleConversation *conv, PurpleMessageFlags flags)
 {
-    //fprintf(stderr, "message_write = \n%s\n",*message);
+    fprintf(stderr, "message_write = \n%s\n",*message);
+    if (!modifiedmsg && strstr(*message,TEX_DELIMITER) && (modifiedmsg = strdup(*message)) &&
+        !analyse(&modifiedmsg, TEX_DELIMITER, TEX_DELIMITER))
+    {
+        free(modifiedmsg);
+        modifiedmsg = NULL;
+    }
+    /*if (!modifiedmsg && strstr(*message,TEX_DELIMITER))
+    {
+        modifiedmsg = strdup(*message);
+        analyse(&modifiedmsg, TEX_DELIMITER, TEX_DELIMITER);
+    }*/
     if (modifiedmsg)
     {
         logflag = purple_conversation_is_logging(conv);
@@ -269,7 +283,7 @@ static gboolean message_write(PurpleAccount *account, const char *sender,
 static void message_wrote(PurpleAccount *account, const char *sender, 
     const char *message, PurpleConversation *conv, PurpleMessageFlags flags)
 {
-    //fprintf(stderr, "message_wrote = \n%s\n",message);
+    fprintf(stderr, "message_wrote = \n%s\n",message);
     if (originalmsg && logflag)
     {
         purple_conversation_set_logging(conv, logflag);
@@ -288,14 +302,12 @@ static void message_wrote(PurpleAccount *account, const char *sender,
 
 static void message_send(PurpleAccount *account, char *recipient, char **message)
 {
-    //fprintf(stderr, "message_send = \n%s\n",*message);
-    if (!(modifiedmsg = strdup(*message))) return;
-    else if (strstr(modifiedmsg, TEX_DELIMITER) && 
-        analyse(&modifiedmsg, TEX_DELIMITER, TEX_DELIMITER))
-    {
-        if (purple_prefs_get_bool(PREFS_SENDIMAGE))
-            *message = strdup(modifiedmsg);
-    }
+    fprintf(stderr, "message_send = \n%s\n",*message);
+    if (!purple_prefs_get_bool(PREFS_SENDIMAGE) || !strstr(*message, TEX_DELIMITER) ||
+        !(modifiedmsg = strdup(*message)))
+        return;
+    else if (analyse(&modifiedmsg, TEX_DELIMITER, TEX_DELIMITER))
+        *message = strdup(modifiedmsg);
     else
     {
         free(modifiedmsg);
@@ -320,12 +332,12 @@ static gboolean plugin_load(PurplePlugin *plugin)
 static gboolean plugin_unload(PurplePlugin * plugin)
 {
     void *conv_handle = purple_conversations_get_handle();
-    purple_signal_disconnect(conv_handle, "writing-im-msg",   plugin, PURPLE_CALLBACK(message_write));
-    purple_signal_disconnect(conv_handle, "writing-chat-mg",  plugin, PURPLE_CALLBACK(message_write));
-    purple_signal_disconnect(conv_handle, "wrote-im-msg",     plugin, PURPLE_CALLBACK(message_wrote));
-    purple_signal_disconnect(conv_handle, "wrote-chat-msg",   plugin, PURPLE_CALLBACK(message_wrote));
-    purple_signal_disconnect(conv_handle, "sending-im-msg",   plugin, PURPLE_CALLBACK(message_send));
-    purple_signal_disconnect(conv_handle, "sending-chat-msg", plugin, PURPLE_CALLBACK(message_send));
+    purple_signal_disconnect(conv_handle, "writing-im-msg",     plugin, PURPLE_CALLBACK(message_write));
+    purple_signal_disconnect(conv_handle, "writing-chat-mg",    plugin, PURPLE_CALLBACK(message_write));
+    purple_signal_disconnect(conv_handle, "wrote-im-msg",       plugin, PURPLE_CALLBACK(message_wrote));
+    purple_signal_disconnect(conv_handle, "wrote-chat-msg",     plugin, PURPLE_CALLBACK(message_wrote));
+    purple_signal_disconnect(conv_handle, "sending-im-msg",     plugin, PURPLE_CALLBACK(message_send));
+    purple_signal_disconnect(conv_handle, "sending-chat-msg",   plugin, PURPLE_CALLBACK(message_send));
     return TRUE;
 }
 

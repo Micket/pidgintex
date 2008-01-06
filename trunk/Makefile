@@ -24,7 +24,7 @@
 CC = gcc
 STRIP = strip
 PLUGIN = pidginTeX
-PLUGIN_VERSION = 1.0.1
+PLUGIN_VERSION = 1.0.2
 
 ifdef CROSS
 ############ Windows ###########
