@@ -7,7 +7,7 @@ Make sure the binary is named mimetex and that it's placed in some directory inc
   * Compile with gcc -DAA -DGIF -lm mimetex.c gifsave.c -o mimetex
   * Move mimetex to folder within PATH.
 
-For a global installation of mimetex you can do the following sequence as root:
+For a global installation of mimetex in Linux you can do the following sequence as root:
 {{{
 mkdir tempdir
 cd tempdir
@@ -22,11 +22,12 @@ rm -r tempdir
 Make sure the binary is named mathtex and that it's placed in some directory included in your path.
   * Download mathtex.zip from www.forkosh.com
   * Unzip into a folder (warning for zip-bomb)
-  * Compile with `gcc –DLATEX=\"`which latex`\" –DDVIPNG=\"`which dvipng`\" -o mathtex` or
-  * Compile with `gcc –DLATEX=\"`which latex`\" –D=\"`which `\" -o mathtex`
+  * Compile with `gcc -DLATEX=\"/path/to/latex\" -DDVIPNG=\"/path/to/dvipng\" -o mathtex` or
+  * Compile with `gcc -DLATEX=\"/path/to/latex\" -DVIPS=\"/path/to/dvips\" -o mathtex`
   * Move mathtex to folder within PATH.
 
-For a global installtion of mathtex you can do the follow sequence as root, using dvipng (make sure you have dvipng installed):
+
+For a global installation of mathtex in Linux you can do the follow sequence as root, using dvipng (make sure you have dvipng installed):
 {{{
 mkdir tempdir
 cd tempdir
@@ -37,7 +38,7 @@ cd ..
 rm -r tempdir
 }}}
 
-For a global installtion of mathtex you can do the follow sequence as root, using dvips and convert (make sure you ImageMagick installed):
+For a global installation of mathtex in Linux you can do the follow sequence as root, using dvips and convert (make sure you ImageMagick installed):
 {{{
 mkdir tempdir
 cd tempdir
