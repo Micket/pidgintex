@@ -43,7 +43,7 @@ mkdir tempdir
 cd tempdir
 wget http://www.forkosh.com/mathtex.zip
 unzip mathtex.zip
-gcc -DLATEX=\"`which latex`\" -DDVIPS=\"`which dvips`\" –DCONVERT=\"`which convert`\" mathtex.c -o /usr/bin/mathtex
+gcc -DLATEX=\"`which latex`\" -DDVIPS=\"`which dvips`\" -DCONVERT=\"`which convert`\" mathtex.c -o /usr/bin/mathtex
 cd ..
 rm -r tempdir
 }}}
