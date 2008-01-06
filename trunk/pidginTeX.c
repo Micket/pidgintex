@@ -179,15 +179,21 @@ static gboolean latex_to_image(char *tex, char **file_img)
             mathfont[fontsize], prepend, tex, *file_img);
     }
     free(cmdTeX);
-
     //fprintf(stderr, "%s\n",cmdparam);
+
     if(execute(cmdparam))
     {
-        char *err_msg = g_strdup_printf("Failed to execute command: %s."
-            " Make sure you have it installed or change renderer.",cmdTeX); 
+        char *err_msg = !strcmp(renderer,"mimetex") ? 
+            "Failed to execute: mimetex\n"
+            "Make sure you have it installed or change renderer." :
+            "Failed to execute: mathtex\n"
+            "Make sure you have it installed or change renderer.";    
+            // This didn't work for no good reason.
+            //g_strdup_printf("Failed to execute command: %s."
+            //" Make sure you have it installed or change renderer.",cmdTeX); 
         purple_notify_error(NULL, PLUGIN_NAME, err_msg, NULL);
-        free(err_msg);
         free(cmdparam);
+        //free(err_msg);
         return FALSE;
     }
     free(cmdparam);
@@ -480,7 +486,7 @@ static PurplePluginInfo info =
         "Benjamin Moll <qjuh@users.sourceforge.net>\n"
         "Nicolas Schoonbroodt <nicolas@ffsa.be>\n"
         "Nicolai Stange <nic-stange@t-online.de>\n",
-    "http://www.micket.com",                          /**< homepage       */
+    "http://pidgintex.googlecode.com",                /**< homepage       */
     plugin_load,                                      /**< load           */
     plugin_unload,                                    /**< unload         */
     NULL,                                             /**< destroy        */
