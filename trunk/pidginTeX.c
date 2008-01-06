@@ -254,7 +254,7 @@ static gboolean analyse(char **msg, char *startdelim, char *enddelim)
 static gboolean message_write(PurpleAccount *account, const char *sender, 
     char **message, PurpleConversation *conv, PurpleMessageFlags flags)
 {
-    fprintf(stderr, "message_write = \n%s\n",*message);
+    //fprintf(stderr, "message_write = \n%s\n",*message);
     if (!modifiedmsg && strstr(*message,TEX_DELIMITER) && (modifiedmsg = strdup(*message)) &&
         !analyse(&modifiedmsg, TEX_DELIMITER, TEX_DELIMITER))
     {
@@ -283,7 +283,7 @@ static gboolean message_write(PurpleAccount *account, const char *sender,
 static void message_wrote(PurpleAccount *account, const char *sender, 
     const char *message, PurpleConversation *conv, PurpleMessageFlags flags)
 {
-    fprintf(stderr, "message_wrote = \n%s\n",message);
+    //fprintf(stderr, "message_wrote = \n%s\n",message);
     if (originalmsg && logflag)
     {
         purple_conversation_set_logging(conv, logflag);
@@ -302,7 +302,7 @@ static void message_wrote(PurpleAccount *account, const char *sender,
 
 static void message_send(PurpleAccount *account, char *recipient, char **message)
 {
-    fprintf(stderr, "message_send = \n%s\n",*message);
+    //fprintf(stderr, "message_send = \n%s\n",*message);
     if (!purple_prefs_get_bool(PREFS_SENDIMAGE) || !strstr(*message, TEX_DELIMITER) ||
         !(modifiedmsg = strdup(*message)))
         return;
