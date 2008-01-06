@@ -17,3 +17,15 @@ gcc -DAA -DGIF -lm mimetex.c gifsave.c -o /usr/bin/mimetex
 cd ..
 rm -r tempdir
 }}}
+
+=mathTeX=
+Make sure the binary is named mathtex and that it's placed in some directory included in your path.
+  * Download mathtex.zip from www.forkosh.com
+  * Unzip into a folder (warning for zip-bomb)
+  * Compile with gcc TODO -o mathtex
+  * Move mathtex to folder within PATH.
+
+For a global installtion of mathtex you can do the follow sequence as root:
+{{{
+TODO
+}}}
