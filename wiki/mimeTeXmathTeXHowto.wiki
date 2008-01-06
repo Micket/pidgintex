@@ -42,6 +42,7 @@ rm -r tempdir
 }}}
 
 The following will not produce pictures with an alpha channel, they will be antialiased to a white background with #FFFFFF as transparent.
+
 For a global installation of mathtex in Linux you can do the follow sequence as root, using dvips and convert (make sure you ImageMagick installed):
 {{{
 mkdir tempdir
