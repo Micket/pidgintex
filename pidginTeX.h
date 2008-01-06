@@ -119,7 +119,7 @@ static gboolean message_write(PurpleAccount *account, const char *sender, char *
     PurpleConversation *conv, PurpleMessageFlags flags);
 static void message_wrote(PurpleAccount *account, const char *sender, 
     const char *message, PurpleConversation *conv, PurpleMessageFlags flags);
-static void message_send(PurpleAccount *account, const char *recipient, char **message);
+static void message_send(PurpleAccount *account, char *recipient, char **message);
 
 /* variables for callback functions */
 static gboolean logflag;
