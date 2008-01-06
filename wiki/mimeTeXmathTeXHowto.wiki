@@ -1,0 +1,17 @@
+#summary Installation instructions for the renderers.
+#labels Featured,Phase-Deploy
+=mimeTeX=
+  * Download mimetex.zip from www.forkosh.com
+  * Unzip into a folder (warning for zip-bomb)
+  * Compile with gcc -DAA -DGIF -lm mimetex.c gifsave.c -o mimetex
+  * Move mimetex to folder within PATH.
+
+{{{
+mkdir tempdir
+cd tempdir
+wget http://www.forkosh.com/mimetex.zip
+unzip mimetex.zip
+gcc -DAA -DGIF -lm mimetex.c gifsave.c -o /usr/bin/mimetex
+cd ..
+rm -r tempdir
+}}}
