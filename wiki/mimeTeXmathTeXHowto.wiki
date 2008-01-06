@@ -4,7 +4,7 @@
 Make sure the binary is named mimetex and that it's placed in some directory included in your path.
   * Download mimetex.zip from www.forkosh.com
   * Unzip into a folder (warning for zip-bomb)
-  * Compile with gcc -DAA -DGIF -lm mimetex.c gifsave.c -o mimetex
+  * Compile with cc -DAA -DGIF -lm mimetex.c gifsave.c -o mimetex
   * Move mimetex to folder within PATH.
 
 For a global installation of mimetex in Linux you can do the following sequence as root:
@@ -13,7 +13,7 @@ mkdir tempdir
 cd tempdir
 wget http://www.forkosh.com/mimetex.zip
 unzip mimetex.zip
-gcc -DAA -DGIF -lm mimetex.c gifsave.c -o /usr/bin/mimetex
+cc -DAA -DGIF -lm mimetex.c gifsave.c -o /usr/bin/mimetex
 cd ..
 rm -r tempdir
 }}}
@@ -33,7 +33,7 @@ mkdir tempdir
 cd tempdir
 wget http://www.forkosh.com/mathtex.zip
 unzip mathtex.zip
-gcc -DLATEX=\"`which latex`\" -DDVIPNG=\"`which dvipng`\" mathtex.c -o /usr/bin/mathtex
+cc -DLATEX=\"`which latex`\" -DDVIPNG=\"`which dvipng`\" mathtex.c -o /usr/bin/mathtex
 cd ..
 rm -r tempdir
 }}}
@@ -44,7 +44,7 @@ mkdir tempdir
 cd tempdir
 wget http://www.forkosh.com/mathtex.zip
 unzip mathtex.zip
-gcc -DLATEX=\"`which latex`\" -DDVIPS=\"`which dvips`\" -DCONVERT=\"`which convert`\" mathtex.c -o /usr/bin/mathtex
+cc -DLATEX=\"`which latex`\" -DDVIPS=\"`which dvips`\" -DCONVERT=\"`which convert`\" mathtex.c -o /usr/bin/mathtex
 cd ..
 rm -r tempdir
 }}}
