@@ -41,11 +41,7 @@ $ whereis pidgin
 and look for the part before "/lib/pidgin".
 
 MINGW:
-1. Get glib-2.0 and iconv binaries at
-http://ftp.gnome.org/pub/gnome/binaries/win32/
-Unzip in src directory.
-2. $ make MINGW=1
-3. Put pidginTeX.dll somewhere usefull.
+-- HELP WANTED ---
 
 To use
 - put LaTeX code into $$ ... $$ markup, for example $$x \in \mathbb{R}$$

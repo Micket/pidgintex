@@ -3,6 +3,7 @@ Version 1.0.2
   * Fixed bug where incoming message were not rendered.
   * Improved error message for missing renderer.
   * Fixed silly mistake in header file
+  * Changed homepage
 
 Version 1.0.1
   * Warning message when image can't be sent.
