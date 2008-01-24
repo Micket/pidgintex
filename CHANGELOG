@@ -1,4 +1,8 @@
 = Details =
+Version 1.0.3
+  * Fixed cross compilation for Win32
+  * Fixed escaped apostrohpes (prime sign ')
+
 Version 1.0.2
   * Fixed bug where incoming message were not rendered.
   * Improved error message for missing renderer.

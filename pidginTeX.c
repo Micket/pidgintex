@@ -36,6 +36,45 @@
 
 #include "pidginTeX.h"
 
+// This is really just for apostrophes, rest is handled by the renderers.
+/*char* unescape_apos(char* string)
+{
+    char* unesc_string = g_strdup(string);
+    char* andpos = unesc_string;
+    while (andpos = g_strrstr(andpos, "&apos;"))
+    {
+        andpos[0] = '\'';
+        memmove(&andpos[1], &andpos[6], strlen(&andpos[6]));
+        break;
+    }
+    fprintf(stderr, "unesc_string = %s\n",unesc_string);
+    return unesc_string;
+}*/
+
+/*char* unescape_html(char* string)
+{
+    char* rep[][2] = {
+        {"apos;","'"}
+        };
+    char* unesc_string = g_strdup(string);
+    char* andpos;
+    while (andpos = strchr(unesc_string, '&'))// && andpos+1 < unesc_string[end])
+    {
+        int i;
+        for (i = 0; i < sizeof(rep)/sizeof(*rep); i++)
+        {
+            int len = strlen(rep[i][1])+1;
+            if (!strncmp(rep[1][1], &andpos[1], len))
+            {
+                andpos[0] = rep[i][1][0];
+                memmove(&andpos[1], &andpos[len], strlen(&andpos[len]));
+                break;
+            }
+        }
+    }
+    return unesc_string;
+}*/
+
 static void open_log(PurpleConversation *conv)
 {
     conv->logs = g_list_append(NULL, purple_log_new(conv->type == PURPLE_CONV_TYPE_CHAT ? 
@@ -86,7 +125,10 @@ char* searchPATH(const char *file)
         }
     return cmd;
 #else
-    return g_strdup(file);
+    char* searchexpr = g_strdup_printf("which %s",file);
+    int found = system(searchexpr);
+    free(searchexpr);
+    return found ? NULL : g_strdup(file);
 #endif
 }
 
@@ -150,13 +192,27 @@ static gboolean latex_to_image(char *tex, char **file_img)
     char *cmdTeX = searchPATH(renderer);
     if (!cmdTeX)
     {
-        purple_notify_error(NULL, PLUGIN_NAME, "Couldn't find the selected renderer.", NULL);
+        char *err_msg = !strcmp(renderer,"mimetex") ? 
+            "Failed to find: mimetex\n"
+            "Make sure you have it installed or change renderer." :
+            "Failed to find: mathtex\n"
+            "Make sure you have it installed or change renderer.";    
+        // This didn't work for no good reason.
+        //g_strdup_printf("Failed to execute command: %s."
+        //" Make sure you have it installed or change renderer.",cmdTeX); 
+        purple_notify_error(NULL, PLUGIN_NAME, err_msg, NULL);
         free(cmdTeX);
         return FALSE;
     }
 
+    // Fixes the unusual escaped apostrophe (rest can be handled by mathtex)
+    //tex = unescape_apos(tex);
+    GRegex* regex = g_regex_new("&apos;", 0, 0, NULL);
+    tex = g_regex_replace(regex, tex, -1, 0, "'", 0, NULL);
+    g_regex_unref(regex);
+
     // Build the options the options
-    int  fontsize   = purple_prefs_get_int(PREFS_FONT_SIZE);
+    int  fontsize         = purple_prefs_get_int(PREFS_FONT_SIZE);
     const char *prepend   = purple_prefs_get_string(PREFS_PREPEND);
     const char *fontcolor = purple_prefs_get_string(PREFS_FONT_COLOR);
     const char *style     = purple_prefs_get_string(PREFS_STYLE);
@@ -179,15 +235,16 @@ static gboolean latex_to_image(char *tex, char **file_img)
             mathfont[fontsize], prepend, tex, *file_img);
     }
     free(cmdTeX);
+    free(tex);
     //fprintf(stderr, "%s\n",cmdparam);
 
     if(execute(cmdparam))
     {
         char *err_msg = !strcmp(renderer,"mimetex") ? 
             "Failed to execute: mimetex\n"
-            "Make sure you have it installed or change renderer." :
+            "Something might be wrong in the latex expression." :
             "Failed to execute: mathtex\n"
-            "Make sure you have it installed or change renderer.";    
+            "Something might be wrong in the latex expression.";    
             // This didn't work for no good reason.
             //g_strdup_printf("Failed to execute command: %s."
             //" Make sure you have it installed or change renderer.",cmdTeX); 
@@ -237,7 +294,8 @@ static gboolean analyse(char **msg, char *startdelim, char *enddelim)
         unlink(file_img);
         free(file_img);
 
-        char* name = g_strdup_printf("pidginTeX-%s-%d.png",purple_date_format_long(NULL),imgcounter++);
+        char* name = g_strdup_printf("pidginTeX-%s-%d.png",purple_date_format_long(NULL),
+            imgcounter++);
         int idimg = purple_imgstore_add_with_id(filedata, size, name);
         free(name);
         if (idimg == 0)
@@ -260,7 +318,7 @@ static gboolean analyse(char **msg, char *startdelim, char *enddelim)
 static gboolean message_write(PurpleAccount *account, const char *sender, 
     char **message, PurpleConversation *conv, PurpleMessageFlags flags)
 {
-    //fprintf(stderr, "message_write = \n%s\n",*message);
+    fprintf(stderr, "message_write = \n%s\n",*message);
     if (!modifiedmsg && strstr(*message,TEX_DELIMITER) && (modifiedmsg = strdup(*message)) &&
         !analyse(&modifiedmsg, TEX_DELIMITER, TEX_DELIMITER))
     {
@@ -289,7 +347,7 @@ static gboolean message_write(PurpleAccount *account, const char *sender,
 static void message_wrote(PurpleAccount *account, const char *sender, 
     const char *message, PurpleConversation *conv, PurpleMessageFlags flags)
 {
-    //fprintf(stderr, "message_wrote = \n%s\n",message);
+    fprintf(stderr, "message_wrote = \n%s\n",message);
     if (originalmsg && logflag)
     {
         purple_conversation_set_logging(conv, logflag);
@@ -308,7 +366,7 @@ static void message_wrote(PurpleAccount *account, const char *sender,
 
 static void message_send(PurpleAccount *account, char *recipient, char **message)
 {
-    //fprintf(stderr, "message_send = \n%s\n",*message);
+    fprintf(stderr, "message_send = \n%s\n",*message);
     if (!purple_prefs_get_bool(PREFS_SENDIMAGE) || !strstr(*message, TEX_DELIMITER) ||
         !(modifiedmsg = strdup(*message)))
         return;
@@ -324,12 +382,12 @@ static void message_send(PurpleAccount *account, char *recipient, char **message
 static gboolean plugin_load(PurplePlugin *plugin)
 {
     void *conv_handle = purple_conversations_get_handle();
-    purple_signal_connect(conv_handle, "writing-im-msg",   plugin, PURPLE_CALLBACK(message_write), NULL);
-    purple_signal_connect(conv_handle, "writing-chat-msg", plugin, PURPLE_CALLBACK(message_write), NULL);
-    purple_signal_connect(conv_handle, "wrote-im-msg",     plugin, PURPLE_CALLBACK(message_wrote), NULL);
-    purple_signal_connect(conv_handle, "wrote-chat-msg",   plugin, PURPLE_CALLBACK(message_wrote), NULL);
-    purple_signal_connect(conv_handle, "sending-im-msg",   plugin, PURPLE_CALLBACK(message_send), NULL);
-    purple_signal_connect(conv_handle, "sending-chat-msg", plugin, PURPLE_CALLBACK(message_send), NULL);
+    purple_signal_connect(conv_handle,"writing-im-msg",  plugin,PURPLE_CALLBACK(message_write), NULL);
+    purple_signal_connect(conv_handle,"writing-chat-msg",plugin,PURPLE_CALLBACK(message_write), NULL);
+    purple_signal_connect(conv_handle,"wrote-im-msg",    plugin,PURPLE_CALLBACK(message_wrote), NULL);
+    purple_signal_connect(conv_handle,"wrote-chat-msg",  plugin,PURPLE_CALLBACK(message_wrote), NULL);
+    purple_signal_connect(conv_handle,"sending-im-msg",  plugin,PURPLE_CALLBACK(message_send), NULL);
+    purple_signal_connect(conv_handle,"sending-chat-msg",plugin,PURPLE_CALLBACK(message_send), NULL);
     purple_debug(PURPLE_DEBUG_INFO, PLUGIN_NAME, PLUGIN_NAME " loaded\n");
     modifiedmsg = NULL;
     return TRUE;
@@ -338,12 +396,12 @@ static gboolean plugin_load(PurplePlugin *plugin)
 static gboolean plugin_unload(PurplePlugin * plugin)
 {
     void *conv_handle = purple_conversations_get_handle();
-    purple_signal_disconnect(conv_handle, "writing-im-msg",     plugin, PURPLE_CALLBACK(message_write));
-    purple_signal_disconnect(conv_handle, "writing-chat-mg",    plugin, PURPLE_CALLBACK(message_write));
-    purple_signal_disconnect(conv_handle, "wrote-im-msg",       plugin, PURPLE_CALLBACK(message_wrote));
-    purple_signal_disconnect(conv_handle, "wrote-chat-msg",     plugin, PURPLE_CALLBACK(message_wrote));
-    purple_signal_disconnect(conv_handle, "sending-im-msg",     plugin, PURPLE_CALLBACK(message_send));
-    purple_signal_disconnect(conv_handle, "sending-chat-msg",   plugin, PURPLE_CALLBACK(message_send));
+    purple_signal_disconnect(conv_handle,"writing-im-msg",  plugin,PURPLE_CALLBACK(message_write));
+    purple_signal_disconnect(conv_handle,"writing-chat-mg", plugin,PURPLE_CALLBACK(message_write));
+    purple_signal_disconnect(conv_handle,"wrote-im-msg",    plugin,PURPLE_CALLBACK(message_wrote));
+    purple_signal_disconnect(conv_handle,"wrote-chat-msg",  plugin,PURPLE_CALLBACK(message_wrote));
+    purple_signal_disconnect(conv_handle,"sending-im-msg",  plugin,PURPLE_CALLBACK(message_send));
+    purple_signal_disconnect(conv_handle,"sending-chat-msg",plugin,PURPLE_CALLBACK(message_send));
     return TRUE;
 }
 

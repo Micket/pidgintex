@@ -32,8 +32,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#ifndef _PIDGIN_MIMETEX_H_
-#define _PIDGIN_MIMETEX_H_
+#ifndef _PIDGINTEX_H_
+#define _PIDGINTEX_H_
 #ifndef G_GNUC_NULL_TERMINATED
 #  if __GNUC__ >= 4
 #    define G_GNUC_NULL_TERMINATED __attribute__((__sentinel__))
@@ -46,6 +46,7 @@
 
 // Includes
 #ifdef _WIN32
+#define g_file_get_contents g_file_get_contents_utf8
 #include <windows.h>
 #endif
 

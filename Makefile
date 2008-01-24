@@ -24,11 +24,16 @@
 CC = gcc
 STRIP = strip
 PLUGIN = pidginTeX
-PLUGIN_VERSION = 1.0.2
+PLUGIN_VERSION = 1.0.3
 
 ifdef CROSS
 ############ Windows ###########
-CC = $(CROSS)-$(CC)
+CC    = i586-mingw32msvc-gcc
+STRIP = i586-mingw32msvc-strip
+
+W32INCLUDE = ../win32-dev/w32api/include
+W32LIB     = ../win32-dev/w32api/lib
+
 PIDGIN_TREE_TOP = ../pidgin-2.3.1
 PURPLE_TOP      = $(PIDGIN_TREE_TOP)/libpurple
 
@@ -36,11 +41,14 @@ PIDGIN_CFLAGS = \
 		-I$(PIDGIN_TREE_TOP) \
 		-I$(PURPLE_TOP) \
 		-I$(PURPLE_TOP)/win32 \
-		$(shell pkg-config glib-2.0 --cflags)
+		-I$(W32INCLUDE) \
+		$(shell pkg-config glib-2.0 --cflags) -D"__GNUC_PREREQ(a,b)=0"
 
-PIDGIN_LDFLAGS = -L$(PURPLE_TOP) -lpurple #-Lbin/ -lglib-2.0
+PIDGIN_LDFLAGS = \
+	-L$(W32LIB) \
+	-L$(PURPLE_TOP) -lpurple -L../win32-dev/gtk_2_0/lib -lglib-2.0
 
-PLUGIN_FILE = $(PLUGIN).dll
+PLUGIN_FILE = $(PLUGIN)-$(PLUGIN_VERSION).dll
 else 
 ############ Linux ###########
 ifeq ($(PREFIX),)
@@ -56,9 +64,9 @@ PLUGIN_FILE = $(PLUGIN).so
 endif
 
 ############ Both ###########
-CFLAGS  = $(PIDGIN_CFLAGS) -fPIC -c \
+CFLAGS    += $(PIDGIN_CFLAGS) -fPIC -c \
 	-DPLUGIN_NAME=\"$(PLUGIN)\" -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\"
-LDFLAGS = $(PIDGIN_LDFLAGS) -shared -Wl,--export-dynamic -Wl,-soname
+LDFLAGS    = $(PIDGIN_LDFLAGS) -shared -Wl,--export-dynamic -Wl,-soname
 PLUGIN_DIR = $(PLUGIN)-$(PLUGIN_VERSION)
 
 all: $(PLUGIN).o 
@@ -77,4 +85,4 @@ tar:
 	rm -r $(PLUGIN_DIR)
 
 clean:
-	rm -rf $(PLUGIN).o $(PLUGIN).so $(PLUGIN).dll
+	rm -rf $(PLUGIN).o $(PLUGIN)*.so $(PLUGINi)*.dll
