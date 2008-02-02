@@ -83,7 +83,7 @@ char* searchPATH(const char *file)
         }
     return cmd;
 #else
-    char* searchexpr = g_strdup_printf("which %s",file);
+    char* searchexpr = g_strdup_printf("which %s > /dev/null",file);
     int found = system(searchexpr);
     free(searchexpr);
     return found ? NULL : g_strdup(file);
