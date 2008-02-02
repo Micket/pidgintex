@@ -1,5 +1,11 @@
 #labels Featured
 = Details =
+Version 1.0.3
+  * Fixed cross compilation for Win32
+  * Fixed escaped apostrohpes (prime sign ')
+  * Added DEBUG option in makefile. 
+    Prints out debug information if compiled with make DEBUG=1
+
 Version 1.0.2
   * Fixed bug where incoming message were not rendered.
   * Improved error message for missing renderer.
