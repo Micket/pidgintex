@@ -46,7 +46,7 @@ PIDGIN_CFLAGS = \
 
 PIDGIN_LDFLAGS = \
 	-L$(W32LIB) \
-	-L$(PURPLE_TOP) -lpurple -L../win32-dev/gtk_2_0/lib -lglib-2.0
+	-L$(PURPLE_TOP) -lpurple -L../win32-dev/w32/api/lib -lglib-2.0
 
 PLUGIN_FILE = $(PLUGIN)-$(PLUGIN_VERSION).dll
 else 
@@ -57,27 +57,37 @@ else
  LIB_INSTALL_DIR = $(PREFIX)/lib/pidgin
 endif
 PIDGIN_CFLAGS  = $(shell pkg-config pidgin --cflags)
-PIDGIN_LDFLAGS = $(shell pkg-config pidgin --libs)
+#PIDGIN_LDFLAGS = $(shell pkg-config pidgin --libs)
 
 PLUGIN_FILE = $(PLUGIN).so
 
 endif
 
 ############ Both ###########
-CFLAGS    += $(PIDGIN_CFLAGS) -fPIC -c \
+ifdef DEBUG
+DEBUG_PRINT = fprintf
+else
+DEBUG_PRINT = //
+endif
+
+CFLAGS    += -D"DEBUG_PRINT=$(DEBUG_PRINT)\"" $(PIDGIN_CFLAGS) -fPIC -c \
 	-DPLUGIN_NAME=\"$(PLUGIN)\" -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\"
 LDFLAGS    = $(PIDGIN_LDFLAGS) -shared -Wl,--export-dynamic -Wl,-soname
 PLUGIN_DIR = $(PLUGIN)-$(PLUGIN_VERSION)
 
-all: $(PLUGIN).o 
+all: $(PLUGIN).o
+	@echo ======= Compiling $(PLUGIN_FILE)
 	$(CC) -o $(PLUGIN_FILE) $< $(LDFLAGS)
+	@echo ======= Stripping $(PLUGIN_FILE)
 	$(STRIP) $(PLUGIN_FILE)
 
 install: all
+	@echo ======= Installing to $(LIB_INSTALL_DIR)
 	mkdir -p $(LIB_INSTALL_DIR)
 	cp $(PLUGIN).so $(LIB_INSTALL_DIR)
 
 tar:
+	@echo ======= Creating source package $(PLUGIN_DIR).tar.gz
 	rm -rf $(PLUGIN_DIR) $(PLUGIN_DIR).tar.gz
 	mkdir $(PLUGIN_DIR)
 	cp $(PLUGIN).c $(PLUGIN).h Makefile CHANGELOG COPYING README TODO $(PLUGIN_DIR)
@@ -85,4 +95,5 @@ tar:
 	rm -r $(PLUGIN_DIR)
 
 clean:
+	@echo ======= Clean
 	rm -rf $(PLUGIN).o $(PLUGIN)*.so $(PLUGINi)*.dll
