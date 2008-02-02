@@ -2,19 +2,17 @@
  * pidginTeX.c
  * Mikael Öhman (micketeer@gmail.com)
  *
- * Built from
- * LaTeX.c
- * pidgin-latex plugin
+ * Built from pidgin-latex plugin
  *
- * PLEASE, send any comment, bug report, etc. to the trackers at sourceforge.net
+ * PLEASE, send any comment, bug report, etc. to the trackers at googlecode
  *
+ * original pidgin-latex plugin writers:
  * Copyright (C) 2006-2007 Benjamin Moll (qjuh@users.sourceforge.net)
  * some portions : Copyright (C) 2004-2006 Nicolas Schoonbroodt (nicolas@ffsa.be)
  *                 Copyright (C) 2004-2006 GRIm@ (thegrima@altern.org).
  *         Copyright (C) 2004-2006 Eric Betts (bettse@onid.orst.edu).
  * Windows port  : Copyright (C) 2005-2006 Nicolai Stange (nic-stange@t-online.de)
  * Other portions heavily inspired and copied from gaim sources
- *
  *
  * Copyright (C) 1998-2007 Pidgin developers pidgin.im
  *
@@ -31,49 +29,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program (see COPYING); if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
  */
 
 #include "pidginTeX.h"
-
-// This is really just for apostrophes, rest is handled by the renderers.
-/*char* unescape_apos(char* string)
-{
-    char* unesc_string = g_strdup(string);
-    char* andpos = unesc_string;
-    while (andpos = g_strrstr(andpos, "&apos;"))
-    {
-        andpos[0] = '\'';
-        memmove(&andpos[1], &andpos[6], strlen(&andpos[6]));
-        break;
-    }
-    fprintf(stderr, "unesc_string = %s\n",unesc_string);
-    return unesc_string;
-}*/
-
-/*char* unescape_html(char* string)
-{
-    char* rep[][2] = {
-        {"apos;","'"}
-        };
-    char* unesc_string = g_strdup(string);
-    char* andpos;
-    while (andpos = strchr(unesc_string, '&'))// && andpos+1 < unesc_string[end])
-    {
-        int i;
-        for (i = 0; i < sizeof(rep)/sizeof(*rep); i++)
-        {
-            int len = strlen(rep[i][1])+1;
-            if (!strncmp(rep[1][1], &andpos[1], len))
-            {
-                andpos[0] = rep[i][1][0];
-                memmove(&andpos[1], &andpos[len], strlen(&andpos[len]));
-                break;
-            }
-        }
-    }
-    return unesc_string;
-}*/
 
 static void open_log(PurpleConversation *conv)
 {
@@ -236,7 +194,7 @@ static gboolean latex_to_image(char *tex, char **file_img)
     }
     free(cmdTeX);
     free(tex);
-    //fprintf(stderr, "%s\n",cmdparam);
+    DEBUG_PRINT(stderr, "%s\n",cmdparam);
 
     if(execute(cmdparam))
     {
@@ -318,7 +276,7 @@ static gboolean analyse(char **msg, char *startdelim, char *enddelim)
 static gboolean message_write(PurpleAccount *account, const char *sender, 
     char **message, PurpleConversation *conv, PurpleMessageFlags flags)
 {
-    fprintf(stderr, "message_write = \n%s\n",*message);
+    DEBUG_PRINT(stderr, "message_write = \n%s\n",*message);
     if (!modifiedmsg && strstr(*message,TEX_DELIMITER) && (modifiedmsg = strdup(*message)) &&
         !analyse(&modifiedmsg, TEX_DELIMITER, TEX_DELIMITER))
     {
@@ -347,7 +305,7 @@ static gboolean message_write(PurpleAccount *account, const char *sender,
 static void message_wrote(PurpleAccount *account, const char *sender, 
     const char *message, PurpleConversation *conv, PurpleMessageFlags flags)
 {
-    fprintf(stderr, "message_wrote = \n%s\n",message);
+    DEBUG_PRINT(stderr, "message_wrote = \n%s\n",message);
     if (originalmsg && logflag)
     {
         purple_conversation_set_logging(conv, logflag);
@@ -366,7 +324,7 @@ static void message_wrote(PurpleAccount *account, const char *sender,
 
 static void message_send(PurpleAccount *account, char *recipient, char **message)
 {
-    fprintf(stderr, "message_send = \n%s\n",*message);
+    DEBUG_PRINT(stderr, "message_send = \n%s\n",*message);
     if (!purple_prefs_get_bool(PREFS_SENDIMAGE) || !strstr(*message, TEX_DELIMITER) ||
         !(modifiedmsg = strdup(*message)))
         return;
