@@ -25,8 +25,8 @@ rm -r tempdir
 Make sure the binary is named mathtex and that it's placed in some directory included in your path.
   * Download mathtex.zip from www.forkosh.com
   * Unzip into a folder (warning for zip-bomb)
-  * Compile with `cc -DLATEX=\"/path/to/latex\" -DDVIPNG=\"/path/to/dvipng\" -o mathtex` or
-  * Compile with `cc -DLATEX=\"/path/to/latex\" -DDVIPS=\"/path/to/dvips\" -DCONVERT=\"`which convert`\ -o mathtex`
+  * Compile with dvipng (strongly recommended) or 
+  * Compile with dvips and convert (see below for more detail)
   * Move mathtex to folder within PATH.
 
 
