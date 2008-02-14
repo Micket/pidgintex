@@ -1,6 +1,7 @@
 #summary Frequently asked questions
 #labels Featured
 
+=General=
 ===Should I use mimeTeX or mathTeX?===
 _If you don't want to install latex and dvipng use mimeTeX.
 If you have latex then install dvipng and mathTeX since it renders better images
