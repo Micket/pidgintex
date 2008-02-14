@@ -14,7 +14,7 @@ _The person you are talking to might have another background color or have some 
 You also need to be in Direct IM mode in order to send images inside message.
 You most likely do not want to select this option._
 
-==mimeTeX==
+=mimeTeX=
 ===It's not working===
 _Check to see that mimeTeX is installed. 
 You should get a gif image from_
@@ -25,7 +25,7 @@ _If not, get mimetex or make sure the binary is in some directory that's include
 _You need at least a version higher than 1.50. It should work in 1.64. You can check your version by running_ 
 `mimetex`
 
-==mathTeX==
+=mathTeX=
 ===It's not working===
 _Check to see that mathTeX is installed.
 You should get a png image from_
