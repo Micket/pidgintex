@@ -1,9 +1,11 @@
 = Details =
+Version 1.0.4
+  * Fixed makefile to only require purple-dev, not pidgin-dev
+
 Version 1.0.3
   * Fixed cross compilation for Win32
   * Fixed escaped apostrohpes (prime sign ')
-  * Added DEBUG option in makefile. 
-    Prints out debug information if compiled with make DEBUG=1
+  * Added DEBUG option in makefile. Prints out debug information if compiled with make DEBUG=1
 
 Version 1.0.2
   * Fixed bug where incoming message were not rendered.
