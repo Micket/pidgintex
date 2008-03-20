@@ -56,11 +56,9 @@ ifeq ($(PREFIX),)
 else
  LIB_INSTALL_DIR = $(PREFIX)/lib/pidgin
 endif
-PIDGIN_CFLAGS  = $(shell pkg-config pidgin --cflags)
-#PIDGIN_LDFLAGS = $(shell pkg-config pidgin --libs)
-
+PIDGIN_CFLAGS  = $(shell pkg-config purple --cflags)
+PIDGIN_LDFLAGS = $(shell pkg-config purple --libs)
 PLUGIN_FILE = $(PLUGIN).so
-
 endif
 
 ############ Both ###########
@@ -72,11 +70,11 @@ endif
 
 CFLAGS    += -D"DEBUG_PRINT=$(DEBUG_PRINT)\"" $(PIDGIN_CFLAGS) -fPIC -c \
 	-DPLUGIN_NAME=\"$(PLUGIN)\" -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\"
-LDFLAGS    = $(PIDGIN_LDFLAGS) -shared -Wl,--export-dynamic -Wl,-soname
+LDFLAGS    = $(PIDGIN_LDFLAGS)-shared -Wl,--export-dynamic -Wl,-soname
 PLUGIN_DIR = $(PLUGIN)-$(PLUGIN_VERSION)
 
 all: $(PLUGIN).o
-	@echo ======= Compiling $(PLUGIN_FILE)
+	@echo ======= Linking $(PLUGIN_FILE)
 	$(CC) -o $(PLUGIN_FILE) $< $(LDFLAGS)
 	@echo ======= Stripping $(PLUGIN_FILE)
 	$(STRIP) $(PLUGIN_FILE)
