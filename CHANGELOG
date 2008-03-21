@@ -1,6 +1,7 @@
 = Details =
 Version 1.0.4
   * Fixed makefile to only require purple-dev, not pidgin-dev
+  * Support for windows. See wiki pages or README
 
 Version 1.0.3
   * Fixed cross compilation for Win32

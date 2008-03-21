@@ -5,6 +5,13 @@ If you have this plugin, please be sure not having the 2 working at the same tim
 
 You need to have mimetex (1.64 preferred,1.50 is definitely to old) [3] or mathtex [4].
 
+WINDOWS:
+Only mimetex is supported in windows. Copy the mimetex.bat file somewhere within your path
+(Placing it in C:\Windows\ would work) and edit the path to mimetex.exe depending 
+on where you have placed it. Mimetex may *not* be in C:\Windows. It is recommended that
+you place it in the plugin folder.
+A compiled binary of mimetex is available on it's official homepage [3].
+
 How to choose:
 1. mimetex, + Small, no extra dependencies.
    mathtex, - Requires latex and dvipng.
@@ -52,12 +59,3 @@ To use
 [4] http://www.forkosh.com/mathtex.html
 
 Developer : Mikael Öhman <micketeer@gmail.com>
-
-Original LaTeX plugin:
-Developer :		Benjamin Moll <qjuh@users.sourceforge.net> (contact me for all infomations or suggestions)
-Former Developer : 	Nicolas Schoonbroodt <nicolas@ffsa.be>
-Thanks for help or patch these other developer :
-		Eric Betts <bettse@onid.orst.edu>
-		GRIm@ <thegrima@altern.org>
-		Gof <ogoffart@kde. org>
-		Nicolai Stange (nic-stange@t-online.de)

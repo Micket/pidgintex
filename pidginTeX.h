@@ -76,10 +76,6 @@
 #define PREFS_FONT_SIZE  (PREFS_BASE "/fontsize")
 #define PREFS_FONT_COLOR (PREFS_BASE "/fontcolor")
 
-//#ifndef MAX
-//#define MAX(a,b) ( (a) > (b) ? (a) : (b))
-//#endif
-
 /* font sizes for mathTeX */
 static char* mathfont[] = {"tiny","footnotesize","normalsize","large",
                  "Large","LARGE","huge","Huge"};
@@ -151,8 +147,8 @@ static int execute(char *cmd);
  * WIN32-Error due to an API-call and asserts it to gaim via purple_notify_error
  * Error message will be prepended by *prep:
  */
-#ifdef _WIN32
-void win32_purple_notify_error(char *prep);
-#endif
+//#ifdef _WIN32
+//void win32_purple_notify_error(char *prep);
+//#endif
 
 #endif
