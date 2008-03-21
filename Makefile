@@ -94,4 +94,4 @@ tar:
 
 clean:
 	@echo ======= Clean
-	rm -rf $(PLUGIN).o $(PLUGIN)*.so $(PLUGINi)*.dll
+	rm -rf $(PLUGIN).o $(PLUGIN)*.so $(PLUGIN)*.dll
