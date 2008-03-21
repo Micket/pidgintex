@@ -70,7 +70,7 @@ endif
 
 CFLAGS    += -D"DEBUG_PRINT=$(DEBUG_PRINT)\"" $(PIDGIN_CFLAGS) -fPIC -c \
 	-DPLUGIN_NAME=\"$(PLUGIN)\" -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\"
-LDFLAGS    = $(PIDGIN_LDFLAGS)-shared -Wl,--export-dynamic -Wl,-soname
+LDFLAGS    = $(PIDGIN_LDFLAGS) -shared -Wl,--export-dynamic -Wl,-soname
 PLUGIN_DIR = $(PLUGIN)-$(PLUGIN_VERSION)
 
 all: $(PLUGIN).o

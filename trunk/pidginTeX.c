@@ -1,9 +1,6 @@
-/*
- * pidginTeX.c
+/* pidginTeX.c
  * Mikael Öhman (micketeer@gmail.com)
- *
  * Built from pidgin-latex plugin
- *
  * PLEASE, send any comment, bug report, etc. to the trackers at googlecode
  *
  * original pidgin-latex plugin writers:
@@ -13,19 +10,15 @@
  *         Copyright (C) 2004-2006 Eric Betts (bettse@onid.orst.edu).
  * Windows port  : Copyright (C) 2005-2006 Nicolai Stange (nic-stange@t-online.de)
  * Other portions heavily inspired and copied from gaim sources
- *
  * Copyright (C) 1998-2007 Pidgin developers pidgin.im
- *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; This document is under the scope of
  * the version 2 of the License, or any later version.
- *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
  * You should have received a copy of the GNU General Public License
  * along with this program (see COPYING); if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -40,6 +33,7 @@ static void open_log(PurpleConversation *conv)
                 conv->name, conv->account, conv, time(NULL), NULL));
 }
 
+/*
 #ifdef _WIN32
 void win32_purple_notify_error(char *prep)
 {
@@ -69,25 +63,14 @@ void win32_purple_notify_error(char *prep)
     return;
 }
 #endif
+*/
 
 char* searchPATH(const char *file)
 {
-#ifdef _WIN32
-    char *cmd;
-    DWORD sz = SearchPath(NULL, file, ".exe", 0, cmd, NULL);
-    if (cmd = malloc(sz+1))
-        if (!SearchPath(NULL, file, ".exe", sz+1, cmd, NULL));
-        {
-            free(cmd);
-            cmd=NULL;
-        }
-    return cmd;
-#else
     char* searchexpr = g_strdup_printf("which %s > /dev/null",file);
     int found = system(searchexpr);
     free(searchexpr);
     return found ? NULL : g_strdup(file);
-#endif
 }
 
 static int execute(char *cmd)
@@ -104,14 +87,12 @@ static int execute(char *cmd)
 
     if (!CreateProcess(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &sup, &pi))
     {
-        win32_purple_notify_error(cmd);
-        free(cmd);
+        purple_notify_error(NULL, PLUGIN_NAME, cmd, NULL);
         return -1;
     }
-    free(cmd);
     if (WAIT_OBJECT_0!=WaitForSingleObjectEx(pi.hProcess, INFINITE, FALSE))
     {
-        win32_purple_notify_error(cmd);
+        purple_notify_error(NULL, PLUGIN_NAME, cmd, NULL);
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
         return -1;
@@ -120,7 +101,7 @@ static int execute(char *cmd)
     {
         if (!GetExitCodeThread(pi.hThread, &exitcode))
         {
-            win32_purple_notify_error(cmd);
+            purple_notify_error(NULL, PLUGIN_NAME, cmd, NULL);
             return -1;
         }
         Sleep(10);
@@ -135,7 +116,6 @@ static int execute(char *cmd)
 
 static gboolean latex_to_image(char *tex, char **file_img)
 {
-    // the following is new and related to temporary-filename-generation
     FILE* tmpfile = purple_mkstemp(file_img,TRUE);
     if(!*file_img)
     {
@@ -146,6 +126,7 @@ static gboolean latex_to_image(char *tex, char **file_img)
     }
     fclose(tmpfile);
 
+#ifndef _WIN32
     const char *renderer = purple_prefs_get_string(PREFS_RENDERER);
     char *cmdTeX = searchPATH(renderer);
     if (!cmdTeX)
@@ -162,6 +143,7 @@ static gboolean latex_to_image(char *tex, char **file_img)
         free(cmdTeX);
         return FALSE;
     }
+#endif
 
     // Fixes the unusual escaped apostrophe (rest can be handled by mathtex)
     //tex = unescape_apos(tex);
@@ -179,6 +161,11 @@ static gboolean latex_to_image(char *tex, char **file_img)
     char* cmdparam;
 
     int usecolor = strlen(fontcolor);
+#ifdef _WIN32
+    cmdparam = g_strdup_printf("cmd.exe /C mimetex -d -s %d \"%s%s%s%s%s{%s %s}\" %s",
+        fontsize, usecolor ? "\\":"", usecolor ? fontcolor:"", 
+        reverse, style, smash, prepend, tex, *file_img);
+#else
     if (!strcmp(renderer, "mimetex"))
     {
         cmdparam = g_strdup_printf("\"%s\" -d -s %d \"%s%s%s%s%s{%s %s}\" > %s",
@@ -193,11 +180,17 @@ static gboolean latex_to_image(char *tex, char **file_img)
             mathfont[fontsize], prepend, tex, *file_img);
     }
     free(cmdTeX);
+#endif
     free(tex);
+
     DEBUG_PRINT(stderr, "%s\n",cmdparam);
 
     if(execute(cmdparam))
     {
+#ifdef _WIN32
+        purple_notify_error(NULL, PLUGIN_NAME, "Failed to execute renderer,"
+            " something might be wrong in the latex expression", NULL);
+#else
         char *err_msg = !strcmp(renderer,"mimetex") ? 
             "Failed to execute: mimetex\n"
             "Something might be wrong in the latex expression." :
@@ -207,12 +200,14 @@ static gboolean latex_to_image(char *tex, char **file_img)
             //g_strdup_printf("Failed to execute command: %s."
             //" Make sure you have it installed or change renderer.",cmdTeX); 
         purple_notify_error(NULL, PLUGIN_NAME, err_msg, NULL);
+#endif
         free(cmdparam);
         //free(err_msg);
         return FALSE;
     }
     free(cmdparam);
 
+#ifndef _WIN32
     // Ugly hack becuase mathtex makes up it's own filename (appends fileext). sigh
     if (!strcmp(renderer,"mathtex"))
     {
@@ -221,6 +216,7 @@ static gboolean latex_to_image(char *tex, char **file_img)
         free(*file_img);
         *file_img = file_img2;
     }
+#endif
     return TRUE;
 }
 
@@ -240,7 +236,7 @@ static gboolean analyse(char **msg, char *startdelim, char *enddelim)
         if (!(ptr2 = strstr(tex, enddelim))) return FALSE;
         *ptr2 = '\0';
 
-        if (!latex_to_image(tex, &file_img)) { *ptr2 = *startdelim; return FALSE; };
+        if (!latex_to_image(tex, &file_img)) return FALSE;
 
         if (!g_file_get_contents(file_img, &filedata, &size, &error))
         {
@@ -377,6 +373,7 @@ static PurplePluginPrefFrame * get_plugin_pref_frame(PurplePlugin *plugin)
             "Send image. Make sure images can be sent before selecting!");
     purple_plugin_pref_frame_add(frame, ppref);
 
+#ifndef _WIN32
     // Select renderer
     ppref = purple_plugin_pref_new_with_name_and_label(
             PREFS_RENDERER,
@@ -385,6 +382,7 @@ static PurplePluginPrefFrame * get_plugin_pref_frame(PurplePlugin *plugin)
     purple_plugin_pref_add_choice(ppref, "mimeTeX", "mimetex");
     purple_plugin_pref_add_choice(ppref, "mathTeX", "mathtex");
     purple_plugin_pref_frame_add(frame, ppref);
+#endif
 
     // Print expression
     ppref = purple_plugin_pref_new_with_name_and_label(
@@ -528,7 +526,9 @@ static void init_plugin(PurplePlugin *plugin)
     purple_prefs_add_string(PREFS_SMASH,      "");
     purple_prefs_add_string(PREFS_STYLE,      "");
     purple_prefs_add_string(PREFS_FONT_COLOR, "");
+#ifndef _WIN32
     purple_prefs_add_string(PREFS_RENDERER,   "mimetex");
+#endif
     purple_prefs_add_string(PREFS_PREPEND,    "");
 }
 
