@@ -41,7 +41,7 @@
 #  include <libintl.h>
 #  define _(String) dgettext (PLUGIN_NAME, String)
 // TODO:
-#  define PP_LOCALEDIR "locale"
+#  define LOCALEDIR "locale"
 #else
 #  define _(String) (String)
 #endif
