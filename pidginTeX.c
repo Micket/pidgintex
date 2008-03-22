@@ -492,7 +492,7 @@ static PurplePluginInfo info =
 static void init_plugin(PurplePlugin *plugin)
 {
 #ifdef ENABLE_NLS
-	bindtextdomain(PLUGIN_NAME, PP_LOCALEDIR);
+	bindtextdomain(PLUGIN_NAME, LOCALEDIR);
 	bind_textdomain_codeset(PLUGIN_NAME, "UTF-8");
 #endif
     purple_prefs_add_none  (PREFS_BASE);
