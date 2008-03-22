@@ -21,8 +21,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-CC = gcc
-STRIP = strip
+# Translationtions aren't working yet.
+#ENABLE_NLS = 1
 PLUGIN = pidginTeX
 PLUGIN_VERSION = 1.0.4
 
@@ -31,45 +31,47 @@ ifdef CROSS
 CC    = i586-mingw32msvc-gcc
 STRIP = i586-mingw32msvc-strip
 
-W32INCLUDE = ../win32-dev/w32api/include
-W32LIB     = ../win32-dev/w32api/lib
-
-PIDGIN_TREE_TOP = ../pidgin-2.3.1
-PURPLE_TOP      = $(PIDGIN_TREE_TOP)/libpurple
-
 PIDGIN_CFLAGS = \
-		-I$(PIDGIN_TREE_TOP) \
-		-I$(PURPLE_TOP) \
-		-I$(PURPLE_TOP)/win32 \
-		-I$(W32INCLUDE) \
-		$(shell pkg-config glib-2.0 --cflags) -D"__GNUC_PREREQ(a,b)=0"
+		-D"__GNUC_PREREQ(a,b)=0" \
+		-I../pidgin-2.4.0/libpurple \
+		-I../win32-dev/gtk_2_0/include \
+		-I../win32-dev/gtk_2_0/include/glib-2.0 \
+		-I../win32-dev/gtk_2_0/lib/glib-2.0/include
 
 PIDGIN_LDFLAGS = \
-	-L$(W32LIB) \
-	-L$(PURPLE_TOP) -lpurple -L../win32-dev/w32/api/lib -lglib-2.0
+	-L../win32-dev/gtk_2_0/lib -lglib-2.0 \
+	-L. -lpurple 
+
+ifdef ENABLE_NLS
+ PIDGIN_LDFLAGS += -lintl
+endif
 
 PLUGIN_FILE = $(PLUGIN)-$(PLUGIN_VERSION).dll
 else 
 ############ Linux ###########
+CC = gcc
+STRIP = strip
 ifeq ($(PREFIX),)
  LIB_INSTALL_DIR = $(HOME)/.purple/plugins
 else
  LIB_INSTALL_DIR = $(PREFIX)/lib/pidgin
 endif
-PIDGIN_CFLAGS  = $(shell pkg-config purple --cflags)
+PIDGIN_CFLAGS  = $(shell pkg-config purple --cflags) -fPIC
 PIDGIN_LDFLAGS = $(shell pkg-config purple --libs)
 PLUGIN_FILE = $(PLUGIN).so
 endif
 
 ############ Both ###########
 ifdef DEBUG
-DEBUG_PRINT = fprintf
+ DEBUG_PRINT = fprintf
 else
-DEBUG_PRINT = //
+ DEBUG_PRINT = //
 endif
 
-CFLAGS    += -D"DEBUG_PRINT=$(DEBUG_PRINT)\"" $(PIDGIN_CFLAGS) -fPIC -c \
-	-DPLUGIN_NAME=\"$(PLUGIN)\" -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\"
+CFLAGS     = -DDEBUG_PRINT=$(DEBUG_PRINT) \
+			 -DPLUGIN_NAME=\"$(PLUGIN)\" \
+			 -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\" \
+			 $(PIDGIN_CFLAGS) -c
 LDFLAGS    = $(PIDGIN_LDFLAGS) -shared -Wl,--export-dynamic -Wl,-soname
 PLUGIN_DIR = $(PLUGIN)-$(PLUGIN_VERSION)
 
@@ -83,6 +85,11 @@ install: all
 	@echo ======= Installing to $(LIB_INSTALL_DIR)
 	mkdir -p $(LIB_INSTALL_DIR)
 	cp $(PLUGIN).so $(LIB_INSTALL_DIR)
+
+pot:
+	@echo ======= Creating reference file
+	mkdir -p po
+	xgettext -k_ pidginTeX.c -o po/pidginTeX.pot
 
 tar:
 	@echo ======= Creating source package $(PLUGIN_DIR).tar.gz

@@ -33,38 +33,6 @@ static void open_log(PurpleConversation *conv)
                 conv->name, conv->account, conv, time(NULL), NULL));
 }
 
-/*
-#ifdef _WIN32
-void win32_purple_notify_error(char *prep)
-{
-    char *errmsg=NULL;
-    char *finalmsg;
-    if(!FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, 
-        GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (void*)&errmsg, 0, NULL))
-    {
-        purple_notify_error(NULL, PLUGIN_NAME,"Can't display error message.", NULL);
-        return;
-    }
-
-    if(prep)
-    {
-        finalmsg = g_strdup_printf("%s: %s",errmsg,prep);
-        LocalFree(errmsg);
-        if(!finalmsg)
-        {
-            purple_notify_error(NULL, PLUGIN_NAME, "Can't display error message.", NULL);
-            return;
-        }
-    }
-    else
-        finalmsg = errmsg;
-    purple_notify_error(NULL, PLUGIN_NAME, finalmsg, NULL);
-    free(finalmsg);
-    return;
-}
-#endif
-*/
-
 char* searchPATH(const char *file)
 {
     char* searchexpr = g_strdup_printf("which %s > /dev/null",file);
@@ -119,7 +87,7 @@ static gboolean latex_to_image(char *tex, char **file_img)
     FILE* tmpfile = purple_mkstemp(file_img,TRUE);
     if(!*file_img)
     {
-        purple_notify_error(NULL, PLUGIN_NAME, "Couldn't create temporary file", NULL);
+        purple_notify_error(NULL, PLUGIN_NAME, _("Couldn't create temporary file"), NULL);
         unlink(*file_img);
         free(*file_img);
         return FALSE;
@@ -132,10 +100,10 @@ static gboolean latex_to_image(char *tex, char **file_img)
     if (!cmdTeX)
     {
         char *err_msg = !strcmp(renderer,"mimetex") ? 
-            "Failed to find: mimetex\n"
-            "Make sure you have it installed or change renderer." :
-            "Failed to find: mathtex\n"
-            "Make sure you have it installed or change renderer.";    
+            _("Failed to find: mimetex\n"
+            "Make sure you have it installed or change renderer.") :
+            _("Failed to find: mathtex\n"
+            "Make sure you have it installed or change renderer.");
         // This didn't work for no good reason.
         //g_strdup_printf("Failed to execute command: %s."
         //" Make sure you have it installed or change renderer.",cmdTeX); 
@@ -163,7 +131,7 @@ static gboolean latex_to_image(char *tex, char **file_img)
     int usecolor = strlen(fontcolor);
 #ifdef _WIN32
     cmdparam = g_strdup_printf("cmd.exe /C mimetex -d -s %d \"%s%s%s%s%s{%s %s}\" %s",
-        fontsize, usecolor ? "\\":"", usecolor ? fontcolor:"", 
+        fontsize, usecolor ? "\\":"", usecolor ? fontcolor:"",
         reverse, style, smash, prepend, tex, *file_img);
 #else
     if (!strcmp(renderer, "mimetex"))
@@ -188,14 +156,14 @@ static gboolean latex_to_image(char *tex, char **file_img)
     if(execute(cmdparam))
     {
 #ifdef _WIN32
-        purple_notify_error(NULL, PLUGIN_NAME, "Failed to execute renderer,"
-            " something might be wrong in the latex expression", NULL);
+        purple_notify_error(NULL, PLUGIN_NAME, _("Failed to execute renderer,"
+            " something might be wrong in the latex expression"), NULL);
 #else
         char *err_msg = !strcmp(renderer,"mimetex") ? 
-            "Failed to execute: mimetex\n"
-            "Something might be wrong in the latex expression." :
-            "Failed to execute: mathtex\n"
-            "Something might be wrong in the latex expression.";    
+            _("Failed to execute: mimetex\n"
+            "Something might be wrong in the latex expression.") :
+            _("Failed to execute: mathtex\n"
+            "Something might be wrong in the latex expression.");
             // This didn't work for no good reason.
             //g_strdup_printf("Failed to execute command: %s."
             //" Make sure you have it installed or change renderer.",cmdTeX); 
@@ -254,7 +222,7 @@ static gboolean analyse(char **msg, char *startdelim, char *enddelim)
         free(name);
         if (idimg == 0)
         {
-            purple_notify_error(NULL, PLUGIN_NAME, "Failed to store image.", NULL);
+            purple_notify_error(NULL, PLUGIN_NAME, _("Failed to store image."), NULL);
             *ptr2 = *startdelim;
             return FALSE;
         }
@@ -293,7 +261,7 @@ static gboolean message_write(PurpleAccount *account, const char *sender,
         modifiedmsg = NULL;
         if (conv->features & PURPLE_CONNECTION_NO_IMAGES && purple_prefs_get_bool(PREFS_SENDIMAGE))
             purple_notify_warning(NULL, PLUGIN_NAME, 
-                "Image was NOT sent, this conversation does not support images.", NULL);
+                _("Image was NOT sent, this conversation does not support images."), NULL);
     }
     return FALSE;
 }
@@ -365,19 +333,19 @@ static PurplePluginPrefFrame * get_plugin_pref_frame(PurplePlugin *plugin)
     PurplePluginPref *ppref;
 
     purple_plugin_pref_frame_add(frame,purple_plugin_pref_new_with_label(
-                "All of these choices will only change your image, not your message."));
+                _("All of these choices will only change your image, not your message.")));
 
     // Do send image
     ppref = purple_plugin_pref_new_with_name_and_label(
             PREFS_SENDIMAGE,
-            "Send image. Make sure images can be sent before selecting!");
+            _("Send image. Make sure images can be sent before selecting!"));
     purple_plugin_pref_frame_add(frame, ppref);
 
 #ifndef _WIN32
     // Select renderer
     ppref = purple_plugin_pref_new_with_name_and_label(
             PREFS_RENDERER,
-            "Choose a renderer. Program must be installed in path.");
+            _("Choose a renderer. Program must be installed in path."));
     purple_plugin_pref_set_type(ppref, PURPLE_PLUGIN_PREF_CHOICE);
     purple_plugin_pref_add_choice(ppref, "mimeTeX", "mimetex");
     purple_plugin_pref_add_choice(ppref, "mathTeX", "mathtex");
@@ -387,35 +355,39 @@ static PurplePluginPrefFrame * get_plugin_pref_frame(PurplePlugin *plugin)
     // Print expression
     ppref = purple_plugin_pref_new_with_name_and_label(
             PREFS_PRINTEXPR,
-            "Print the expression along with the image");
+            _("Print the expression along with the image"));
     purple_plugin_pref_frame_add(frame, ppref);
 
+#ifndef _WIN32
     purple_plugin_pref_frame_add(frame,purple_plugin_pref_new_with_label(
-                "Only mimeTeX"));
+                _("Only mimeTeX")));
+#endif
 
     // Reverse image
     ppref = purple_plugin_pref_new_with_name_and_label(
             PREFS_NEGATE,
-            "Negate image. Select for dark background.");
+            _("Negate image. Select for dark background."));
     purple_plugin_pref_frame_add(frame, ppref);
 
     // Smash expression
     ppref = purple_plugin_pref_new_with_name_and_label(
             PREFS_SMASH,
-            "Smash expression. Horizontally compact.");
+            _("Smash expression. Horizontally compact."));
     purple_plugin_pref_set_type(ppref, PURPLE_PLUGIN_PREF_CHOICE);
-    purple_plugin_pref_add_choice(ppref, "Default", "");
-    purple_plugin_pref_add_choice(ppref, "Smash",    "\\smash");
-    purple_plugin_pref_add_choice(ppref, "No smash", "\\nosmash");
+    purple_plugin_pref_add_choice(ppref, _("Default"), "");
+    purple_plugin_pref_add_choice(ppref, _("Smash"),    "\\smash");
+    purple_plugin_pref_add_choice(ppref, _("No smash"), "\\nosmash");
     purple_plugin_pref_frame_add(frame, ppref);
 
+#ifndef _WIN32
     purple_plugin_pref_frame_add(frame,purple_plugin_pref_new_with_label(
-                "For both renderers"));
+                _("For both renderers")));
+#endif
 
     // Font size
     ppref = purple_plugin_pref_new_with_name_and_label(
             PREFS_FONT_SIZE,
-            "Font size");
+            _("Font size"));
     purple_plugin_pref_set_type(ppref, PURPLE_PLUGIN_PREF_CHOICE);
     purple_plugin_pref_add_choice(ppref, "0", GINT_TO_POINTER(1));
     purple_plugin_pref_add_choice(ppref, "1", GINT_TO_POINTER(1));
@@ -430,7 +402,7 @@ static PurplePluginPrefFrame * get_plugin_pref_frame(PurplePlugin *plugin)
     // Style
     ppref = purple_plugin_pref_new_with_name_and_label(
             PREFS_STYLE,
-            "Force style");
+            _("Force style"));
     purple_plugin_pref_set_type(ppref, PURPLE_PLUGIN_PREF_CHOICE);
     purple_plugin_pref_add_choice(ppref, "Auto", "");
     purple_plugin_pref_add_choice(ppref, "Displaystyle", "\\displaystyle");
@@ -440,23 +412,23 @@ static PurplePluginPrefFrame * get_plugin_pref_frame(PurplePlugin *plugin)
     // Font Color
     ppref = purple_plugin_pref_new_with_name_and_label(
             PREFS_FONT_COLOR,
-            "Font color, use default if you have an old version of mimeTeX.");
+            _("Font color, use default if you have an old version of mimeTeX."));
     purple_plugin_pref_set_type(ppref, PURPLE_PLUGIN_PREF_CHOICE);
-    purple_plugin_pref_add_choice(ppref, "Default", "");
-    purple_plugin_pref_add_choice(ppref, "Black",   "black");
-    purple_plugin_pref_add_choice(ppref, "White",   "white");
-    purple_plugin_pref_add_choice(ppref, "Red",     "red");
-    purple_plugin_pref_add_choice(ppref, "Cyan",    "cyan");
-    purple_plugin_pref_add_choice(ppref, "Blue",    "blue");
-    purple_plugin_pref_add_choice(ppref, "Yellow",  "yellow");
-    purple_plugin_pref_add_choice(ppref, "Green",   "green");
-    purple_plugin_pref_add_choice(ppref, "Magenta", "magenta");
+    purple_plugin_pref_add_choice(ppref, _("Default"), "");
+    purple_plugin_pref_add_choice(ppref, _("Black"),   "black");
+    purple_plugin_pref_add_choice(ppref, _("White"),   "white");
+    purple_plugin_pref_add_choice(ppref, _("Red"),     "red");
+    purple_plugin_pref_add_choice(ppref, _("Cyan"),    "cyan");
+    purple_plugin_pref_add_choice(ppref, _("Blue"),    "blue");
+    purple_plugin_pref_add_choice(ppref, _("Yellow"),  "yellow");
+    purple_plugin_pref_add_choice(ppref, _("Green"),   "green");
+    purple_plugin_pref_add_choice(ppref, _("Magenta"), "magenta");
     purple_plugin_pref_frame_add(frame, ppref);
 
     // Prepend
     ppref = purple_plugin_pref_new_with_name_and_label(
             PREFS_PREPEND,
-            "Prepend all expressions: (example \\gammacorrection{3.5})");
+            _("Prepend all expressions: (example \\gammacorrection{3.5})"));
     purple_plugin_pref_frame_add(frame, ppref);
 
     return frame;
@@ -487,13 +459,14 @@ static PurplePluginInfo info =
     PLUGIN_NAME,                                      /**< name           */
     PLUGIN_VERSION,                                   /**< version        */
     /**<  summary        */
-    "To display LaTeX formula into Pidgin conversation.",
+    // I'm not allowed to translate this?
+    ("To display LaTeX formula into Pidgin conversation."),
     /**<  description    */
-    "Put LaTeX-code between $$ ... $$ markup to have it displayed as a "
+    ("Put LaTeX-code between $$ ... $$ markup to have it displayed as a "
         "picture in your conversation.\n"
         "Remember that your contact needs an similar plugin or else he will "
         "just see the pure LaTeX-code.\n"
-        "You must have mimeTeX or mathTeX installed (in your PATH)",
+        "You must have mimeTeX or mathTeX installed (in your PATH)"),
     /**< author */
     "Mikael Öhman <micketeer@gmail.com>\n"
         "Based on LaTeX-plugin by:\n"
@@ -518,6 +491,10 @@ static PurplePluginInfo info =
 
 static void init_plugin(PurplePlugin *plugin)
 {
+#ifdef ENABLE_NLS
+	bindtextdomain(PLUGIN_NAME, PP_LOCALEDIR);
+	bind_textdomain_codeset(PLUGIN_NAME, "UTF-8");
+#endif
     purple_prefs_add_none  (PREFS_BASE);
     purple_prefs_add_bool  (PREFS_SENDIMAGE,  FALSE);
     purple_prefs_add_bool  (PREFS_PRINTEXPR,  TRUE);
