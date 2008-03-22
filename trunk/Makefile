@@ -81,7 +81,7 @@ all: $(PLUGIN).o
 	@echo ======= Stripping $(PLUGIN_FILE)
 	$(STRIP) $(PLUGIN_FILE)
 
-install: all
+install: $(PLUGIN_FILE)
 	@echo ======= Installing to $(LIB_INSTALL_DIR)
 	mkdir -p $(LIB_INSTALL_DIR)
 	cp $(PLUGIN).so $(LIB_INSTALL_DIR)
