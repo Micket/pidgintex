@@ -48,7 +48,9 @@ $ whereis pidgin
 and look for the part before "/lib/pidgin".
 
 MINGW:
--- HELP WANTED ---
+First create libpurple.dll for windows and place in this folder.
+$ make clean
+$ make CROSS=1
 
 To use
 - put LaTeX code into $$ ... $$ markup, for example $$x \in \mathbb{R}$$
