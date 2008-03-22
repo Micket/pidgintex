@@ -1,5 +1,5 @@
 #summary Frequently asked questions
-#labels Featured
+#labels Featured,Phase-Deploy
 
 =General=
 ===Should I use mimeTeX or mathTeX?===
