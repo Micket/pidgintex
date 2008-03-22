@@ -5,16 +5,16 @@ Only mimetex is supported on windows, since mathtex simply doesn't have a window
 There is no need to install latex, ImageMagick or any other software other than mimetex.exe.
 
 = Easy version =
-  * Get the dll-file and place it in the plugins folder (Default C:\Program Files\Pidgin\plugins\)
+  * Get the [http://pidgintex.googlecode.com/files/pidginTeX-1.0.4.dll plugin (1.0.4)] and place it in the plugins folder (Default C:\Program Files\Pidgin\plugins\)
   * Get [http://www.forkosh.com/mimetex.exe/windows/mimetex.zip mimetex]
   * Extract mimetex.exe to your plugin folder (Default C:\Program Files\Pidgin\plugins\)
-  * Get mimetex.bat from the download page. Place it in C:\Windows
+  * Get [http://pidgintex.googlecode.com/files/mimetex.bat mimetex.bat] from the download page. Place it in C:\Windows
   * If C:\Program Files\Pidgin\plugins is the correct folder on your system, you are done, if not you need to perform the last step:
   * Edit the line in mimetex.bat (open mimetex.bat in notepad) and change the the path to where you have placed mimetex.exe (Example "C:\My Folder\Somewhere\mimetex.exe" )
 
 = Hardcore version =
-  * Install the plugin
+  * Install the [http://pidgintex.googlecode.com/files/pidginTeX-1.0.4.dll plugin (1.0.4)]
   * Get [http://www.forkosh.com/mimetex.exe/windows/mimetex.zip mimetex]
   * Extract (or compile) mimetex anywhere not included in your PATH
-  * Get mimetex.bat, edit the path inside it to where you placed mimetex.exe
+  * Get [http://pidgintex.googlecode.com/files/mimetex.bat mimetex.bat], edit the path inside it to where you placed mimetex.exe
   * Place mimetex.bat somewhere that included in your PATH
