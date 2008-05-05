@@ -75,7 +75,7 @@ CFLAGS     = -DDEBUG_PRINT=$(DEBUG_PRINT) \
 LDFLAGS    = $(PIDGIN_LDFLAGS) -shared -Wl,--export-dynamic -Wl,-soname
 PLUGIN_DIR = $(PLUGIN)-$(PLUGIN_VERSION)
 
-all: $(PLUGIN).o
+$(PLUGIN_FILE): $(PLUGIN).o
 	@echo ======= Linking $(PLUGIN_FILE)
 	$(CC) -o $(PLUGIN_FILE) $< $(LDFLAGS)
 	@echo ======= Stripping $(PLUGIN_FILE)
@@ -84,7 +84,7 @@ all: $(PLUGIN).o
 install: $(PLUGIN_FILE)
 	@echo ======= Installing to $(LIB_INSTALL_DIR)
 	mkdir -p $(LIB_INSTALL_DIR)
-	cp $(PLUGIN).so $(LIB_INSTALL_DIR)
+	cp $(PLUGIN_FILE) $(LIB_INSTALL_DIR)
 
 pot:
 	@echo ======= Creating reference file
