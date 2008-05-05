@@ -36,9 +36,14 @@ static void open_log(PurpleConversation *conv)
 char* searchPATH(const char *file)
 {
     char* searchexpr = g_strdup_printf("which %s > /dev/null",file);
-    int found = system(searchexpr);
+    int rt = system(searchexpr);
+    if (rt == -1)
+        perror("Critical error: ");
+    else
+        WEXITSTATUS(rt);
+    DEBUG_PRINT(stderr, "Performed command:\n%s\nreturn value was %d\n",searchexpr,rt);
     free(searchexpr);
-    return found ? NULL : g_strdup(file);
+    return rt ? NULL : g_strdup(file);
 }
 
 static int execute(char *cmd)
