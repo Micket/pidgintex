@@ -53,3 +53,8 @@ cc -DLATEX=\"`which latex`\" -DDVIPS=\"`which dvips`\" -DCONVERT=\"`which conver
 cd ..
 rm -r tempdir
 }}}
+
+The solution with dvips does not work on my Ubuntu 8.04. Here is how to install mathtex globally with dvipng:
+{{{
+cc -DLATEX=\"`which latex`\" -DDVIPNG=\"`which dvipng`\"  mathtex.c -o /usr/bin/mathtex
+}}}
