@@ -47,7 +47,7 @@ char* searchPATH(const char *file)
     // Ubuntu fix!
     // This is a horrible fix for Ubuntu, where system appearantly fails now and then. 
     // I have not been able to find a reason for this, but the commands seem to run anyway
-    return rt || rt == -1 ? NULL : g_strdup(file);
+    return rt && rt != -1 ? NULL : g_strdup(file);
 }
 
 static int execute(char *cmd)
