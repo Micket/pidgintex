@@ -25,6 +25,7 @@
  */
 
 #include "pidginTeX.h"
+#include <errno.h>
 
 static void open_log(PurpleConversation *conv)
 {
@@ -43,7 +44,10 @@ char* searchPATH(const char *file)
         WEXITSTATUS(rt);
     DEBUG_PRINT(stderr, "Performed command:\n%s\nreturn value was %d\n",searchexpr,rt);
     free(searchexpr);
-    return rt ? NULL : g_strdup(file);
+    // Ubuntu fix!
+    // This is a horrible fix for Ubuntu, where system appearantly fails now and then. 
+    // I have not been able to find a reason for this, but the commands seem to run anyway
+    return rt || rt == -1 ? NULL : g_strdup(file);
 }
 
 static int execute(char *cmd)
@@ -157,8 +161,10 @@ static gboolean latex_to_image(char *tex, char **file_img)
     free(tex);
 
     DEBUG_PRINT(stderr, "%s\n",cmdparam);
-
-    if(execute(cmdparam))
+    int rt = execute(cmdparam);
+    if (rt == -1 && errno == ECHILD) // See Ubuntu at searchPATH
+        DEBUG_PRINTF(stderr, "Hoping it works anyway, continuing\n");
+    else if(rt)
     {
 #ifdef _WIN32
         purple_notify_error(NULL, PLUGIN_NAME, _("Failed to execute renderer,"
