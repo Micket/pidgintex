@@ -1,4 +1,7 @@
 = Details =
+Version 1.0.5
+  * Fixed Ubuntu-bug where system() returned errors. There are still errors, but i'm just ignoring them at they still seem to work
+
 Version 1.0.4
   * Fixed makefile to only require purple-dev, not pidgin-dev
   * Support for windows. See wiki pages or README
