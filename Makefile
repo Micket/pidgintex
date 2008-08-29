@@ -24,7 +24,7 @@
 # Translationtions aren't working yet.
 #ENABLE_NLS = 1
 PLUGIN = pidginTeX
-PLUGIN_VERSION = 1.0.4
+PLUGIN_VERSION = 1.0.5
 
 ifdef CROSS
 ############ Windows ###########

@@ -163,7 +163,7 @@ static gboolean latex_to_image(char *tex, char **file_img)
     DEBUG_PRINT(stderr, "%s\n",cmdparam);
     int rt = execute(cmdparam);
     if (rt == -1 && errno == ECHILD) // See Ubuntu at searchPATH
-        DEBUG_PRINTF(stderr, "Hoping it works anyway, continuing\n");
+        DEBUG_PRINT(stderr, "Hoping it works anyway, continuing\n");
     else if(rt)
     {
 #ifdef _WIN32
