@@ -24,6 +24,7 @@
 # Translationtions aren't working yet.
 #ENABLE_NLS = 1
 PLUGIN = pidginTeX
+PLUGIN_LOW = pidgintex
 PLUGIN_VERSION = 1.0.5
 
 ifdef CROSS
@@ -54,7 +55,7 @@ STRIP = strip
 ifeq ($(PREFIX),)
  LIB_INSTALL_DIR = $(HOME)/.purple/plugins
 else
- LIB_INSTALL_DIR = $(PREFIX)/lib/pidgin
+ LIB_INSTALL_DIR = $(PREFIX)/lib/purple-2
 endif
 PIDGIN_CFLAGS  = $(shell pkg-config purple --cflags) -fPIC
 PIDGIN_LDFLAGS = $(shell pkg-config purple --libs)
@@ -74,6 +75,7 @@ CFLAGS     = -DDEBUG_PRINT=$(DEBUG_PRINT) \
 			 $(PIDGIN_CFLAGS) -c
 LDFLAGS    = $(PIDGIN_LDFLAGS) -shared -Wl,--export-dynamic -Wl,-soname
 PLUGIN_DIR = $(PLUGIN)-$(PLUGIN_VERSION)
+PLUGIN_DIR_LOW = $(PLUGIN_LOW)-$(PLUGIN_VERSION)
 
 $(PLUGIN_FILE): $(PLUGIN).o
 	@echo ======= Linking $(PLUGIN_FILE)
@@ -98,6 +100,14 @@ tar:
 	cp $(PLUGIN).c $(PLUGIN).h Makefile CHANGELOG COPYING README TODO $(PLUGIN_DIR)
 	tar -cv $(PLUGIN_DIR) | gzip -9 -c > $(PLUGIN_DIR).tar.gz
 	rm -r $(PLUGIN_DIR)
+
+src-deb:
+	@echo ======= Creating deb package $(PLUGIN_DIR_LOW).deb
+	rm -rf $(PLUGIN_DIR_LOW) $(PLUGIN_DIR_LOW).deb
+	mkdir $(PLUGIN_DIR_LOW)
+	cp $(PLUGIN).c $(PLUGIN).h Makefile CHANGELOG COPYING README TODO $(PLUGIN_DIR_LOW)
+	cd $(PLUGIN_DIR_LOW); dh_make -n -s -e micketeer@gmail.com -c gpl;
+	cd $(PLUGIN_DIR_LOW)/debian; rm *.ex *.EX README*
 
 clean:
 	@echo ======= Clean
