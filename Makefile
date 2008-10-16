@@ -25,7 +25,7 @@
 #ENABLE_NLS = 1
 PLUGIN = pidginTeX
 PLUGIN_LOW = pidgintex
-PLUGIN_VERSION = 1.0.5
+PLUGIN_VERSION = 1.0.6
 
 ifdef CROSS
 ############ Windows ###########
@@ -88,6 +88,7 @@ install: $(PLUGIN_FILE)
 	mkdir -p $(LIB_INSTALL_DIR)
 	cp $(PLUGIN_FILE) $(LIB_INSTALL_DIR)
 
+# Not done
 pot:
 	@echo ======= Creating reference file
 	mkdir -p po
@@ -101,6 +102,7 @@ tar:
 	tar -cv $(PLUGIN_DIR) | gzip -9 -c > $(PLUGIN_DIR).tar.gz
 	rm -r $(PLUGIN_DIR)
 
+# Not done yet
 src-deb:
 	@echo ======= Creating deb package $(PLUGIN_DIR_LOW).deb
 	rm -rf $(PLUGIN_DIR_LOW) $(PLUGIN_DIR_LOW).deb
