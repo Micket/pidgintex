@@ -1,4 +1,7 @@
 = Details =
+Version 1.0.6
+  * Change " to ' when sending system calls. Stops the terminal from removing an escapesequence, namely  \\ to \. This should make it easier to have linebreaks in for example arrays.
+
 Version 1.0.5
   * Fixed Ubuntu-bug where system() returned errors. There are still errors, but i'm just ignoring them at they still seem to work
 
