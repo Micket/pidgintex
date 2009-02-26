@@ -25,7 +25,7 @@
 #ENABLE_NLS = 1
 PLUGIN = pidginTeX
 PLUGIN_LOW = pidgintex
-PLUGIN_VERSION = 1.0.6
+PLUGIN_VERSION = 1.0.7
 
 ifdef CROSS
 ############ Windows ###########
@@ -34,7 +34,7 @@ STRIP = i586-mingw32msvc-strip
 
 PIDGIN_CFLAGS = \
 		-D"__GNUC_PREREQ(a,b)=0" \
-		-I../pidgin-2.4.0/libpurple \
+		-I../pidgin-2.5.2/libpurple \
 		-I../win32-dev/gtk_2_0/include \
 		-I../win32-dev/gtk_2_0/include/glib-2.0 \
 		-I../win32-dev/gtk_2_0/lib/glib-2.0/include

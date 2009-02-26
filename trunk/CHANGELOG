@@ -1,4 +1,7 @@
 = Details =
+Version 1.0.7
+  * Reverted change in 1.0.6, but added a double escape to \\ strings (i.e \\\\ instead). Now ' works again and also linebreaks. Yay.
+
 Version 1.0.6
   * Change " to ' when sending system calls. Stops the terminal from removing an escapesequence, namely  \\ to \. This should make it easier to have linebreaks in for example arrays.
 
