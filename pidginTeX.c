@@ -127,6 +127,10 @@ static gboolean latex_to_image(char *tex, char **file_img)
     GRegex* regex = g_regex_new("&apos;", 0, 0, NULL);
     tex = g_regex_replace(regex, tex, -1, 0, "'", 0, NULL);
     g_regex_unref(regex);
+    // \\ will be escaped in bash to write \ only so i need to double escape it to \\\\\\\\
+    regex = g_regex_new("\\\\", 0, 0, NULL);
+    tex = g_regex_replace(regex, tex, -1, 0, "\\\\\\\\", 0, NULL);
+    g_regex_unref(regex);
 
     // Build the options the options
     int  fontsize         = purple_prefs_get_int(PREFS_FONT_SIZE);
@@ -145,14 +149,14 @@ static gboolean latex_to_image(char *tex, char **file_img)
 #else
     if (!strcmp(renderer, "mimetex"))
     {
-        cmdparam = g_strdup_printf("\"%s\" -d -s %d '%s%s%s%s%s{%s %s}' > %s",
+        cmdparam = g_strdup_printf("\"%s\" -d -s %d \"%s%s%s%s%s{%s %s}\" > %s",
             cmdTeX, fontsize, usecolor ? "\\":"", usecolor ? fontcolor:"", 
             reverse, style, smash, prepend, tex, *file_img);
     }
     else //if (!strcmp(renderer,"mathtex"))
     {
         cmdparam = g_strdup_printf( 
-            "\"%s\" -m 0 '\\png\\usepackage{color}\\color{%s}%s\\%s %s %s' -o %s",
+            "\"%s\" -m 0 \"\\png\\usepackage{color}\\color{%s}%s\\%s %s %s\" -o %s",
             cmdTeX, usecolor ? fontcolor : "black", style,
             mathfont[fontsize], prepend, tex, *file_img);
     }
