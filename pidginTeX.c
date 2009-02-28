@@ -127,7 +127,7 @@ static gboolean latex_to_image(char *tex, char **file_img)
     GRegex* regex = g_regex_new("&apos;", 0, 0, NULL);
     tex = g_regex_replace(regex, tex, -1, 0, "'", 0, NULL);
     g_regex_unref(regex);
-    // \\ will be escaped in bash to write \ only so i need to double escape it to \\\\\\\\
+    // \\ will be escaped in bash to write \ only so i need to double escape it to \\\\.
     regex = g_regex_new("\\\\", 0, 0, NULL);
     tex = g_regex_replace(regex, tex, -1, 0, "\\\\\\\\", 0, NULL);
     g_regex_unref(regex);
