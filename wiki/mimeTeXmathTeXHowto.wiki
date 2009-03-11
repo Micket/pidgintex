@@ -16,7 +16,7 @@ mkdir tempdir
 cd tempdir
 wget http://www.forkosh.com/mimetex.zip
 unzip mimetex.zip
-cc -DAA -DGIF -lm mimetex.c gifsave.c -o /usr/bin/mimetex
+cc -DAA -DGIF -lm mimetex.c gifsave.c -o /usr/local/bin/mimetex
 cd ..
 rm -r tempdir
 }}}
@@ -36,7 +36,7 @@ mkdir tempdir
 cd tempdir
 wget http://www.forkosh.com/mathtex.zip
 unzip mathtex.zip
-cc -DLATEX=\"`which latex`\" -DDVIPNG=\"`which dvipng`\" mathtex.c -o /usr/bin/mathtex
+cc -DLATEX=\"`which latex`\" -DDVIPNG=\"`which dvipng`\" mathtex.c -o /usr/local/bin/mathtex
 cd ..
 rm -r tempdir
 }}}
