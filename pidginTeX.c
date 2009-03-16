@@ -162,7 +162,7 @@ static gboolean latex_to_image(gchar *tex, gchar **file_img)
 static gboolean analyse(const gchar *msg, gchar** outmsg, gchar* delimiter)
 {
     gchar **split = g_strsplit(msg,delimiter,-1);
-    g_return_val_if_fail(!split[1],FALSE);
+    g_return_val_if_fail(split[1]!=NULL,FALSE);
     gboolean print_expr = purple_prefs_get_bool(PREFS_PRINTEXPR);
     GString* out = g_string_sized_new(strlen(msg));
     gint i, imgcounter = 0;
