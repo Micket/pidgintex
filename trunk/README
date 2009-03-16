@@ -1,3 +1,4 @@
+pidginTeX
 This is a plugin for Pidgin [1] that allows you to display LaTeX [2] output into your IMs.
 
 Important : this plugin is not compatible with gaim-encryption plugin. 
@@ -61,3 +62,4 @@ To use
 [4] http://www.forkosh.com/mathtex.html
 
 Developer : Mikael Öhman <micketeer@gmail.com>
+Tracker   : http://pidgintex.googlecode.com/
