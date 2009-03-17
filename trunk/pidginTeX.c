@@ -91,8 +91,6 @@ static gboolean latex_to_image(gchar *tex, gchar **file_img)
     g_free(tex_fixed); tex_fixed = tex_fixed2;
     tex_fixed2 = purple_strcasereplace(tex_fixed, "&apos;","'");
     g_free(tex_fixed); tex_fixed = tex_fixed2;
-    tex_fixed2 = purple_strreplace(tex_fixed, "\\","\\\\");
-    g_free(tex_fixed); tex_fixed = tex_fixed2;
     tex_fixed2 = purple_strreplace(tex_fixed, "\"", "''"); 
     g_free(tex_fixed); tex_fixed = tex_fixed2;
 
@@ -101,7 +99,7 @@ static gboolean latex_to_image(gchar *tex, gchar **file_img)
     const gchar *fontcolor = purple_prefs_get_string(PREFS_FONT_COLOR);
     const gchar *style     = purple_prefs_get_string(PREFS_STYLE);
     const gchar *smash     = purple_prefs_get_string(PREFS_SMASH);
-    const gchar *reverse   = purple_prefs_get_bool(PREFS_NEGATE) ? "\\\\reverse" : "";
+    const gchar *reverse   = purple_prefs_get_bool(PREFS_NEGATE) ? "\\reverse" : "";
     const gint   fontsize  = purple_prefs_get_int(PREFS_FONT_SIZE);
     const gint   usecolor  = strlen(fontcolor);
     gchar* cmdparam = NULL;
@@ -113,17 +111,21 @@ static gboolean latex_to_image(gchar *tex, gchar **file_img)
     "cmd.exe /C "
 #endif
     "%s -s %d \"%s%s%s%s%s{%s %s}\" -e %s",
-            renderer, fontsize, usecolor ? "\\\\":"", usecolor ? fontcolor:"", 
+            renderer, fontsize, usecolor ? "\\":"", usecolor ? fontcolor:"", 
             reverse, style, smash, prepend, tex_fixed, *file_img);
     }
     else //if (!strcmp(renderer,"mathtex"))
     {
         cmdparam = g_strdup_printf( 
-            "%s -m 0 \"\\\\png\\\\usepackage{color}\\\\color{%s}%s\\\\%s %s %s\" -o %s",
+            "%s -m 0 \"\\png\\usepackage{color}\\color{%s}%s\\%s %s %s\" -o %s",
             renderer, usecolor ? fontcolor : "black", style,
             mathfont[fontsize], prepend, tex_fixed, *file_img);
     }
     g_free(tex_fixed);
+#ifndef _WIN32
+    gchar* cmdparam2 = purple_strreplace(cmdparam, "\\","\\\\");
+    g_free(cmdparam); cmdparam = cmdparam2;
+#endif
 
     purple_debug_info(PLUGIN_NAME,"Trying to execute command: %s\n",cmdparam);
     
@@ -162,7 +164,7 @@ static gboolean latex_to_image(gchar *tex, gchar **file_img)
 static gboolean analyse(const gchar *msg, gchar** outmsg, gchar* delimiter)
 {
     gchar **split = g_strsplit(msg,delimiter,-1);
-    g_return_val_if_fail(split[1]!=NULL,FALSE);
+    if (!split[1]) return FALSE;
     gboolean print_expr = purple_prefs_get_bool(PREFS_PRINTEXPR);
     GString* out = g_string_sized_new(strlen(msg));
     gint i, imgcounter = 0;
@@ -226,8 +228,8 @@ static gboolean analyse(const gchar *msg, gchar** outmsg, gchar* delimiter)
 static void message_send(PurpleAccount *account, gchar *recipient, gchar **message)
 {
     purple_debug_info(PLUGIN_NAME,"message_send:\n%s\n",*message);
-    g_return_if_fail(purple_prefs_get_bool(PREFS_SENDIMAGE));
-    g_return_if_fail(analyse(*message, &modifiedmsg, TEX_DELIMITER));
+    if (!purple_prefs_get_bool(PREFS_SENDIMAGE) || !analyse(*message, &modifiedmsg, TEX_DELIMITER))
+        return;
     PurpleConversation* conv = purple_find_conversation_with_account(
         PURPLE_CONV_TYPE_ANY, recipient, account);
     if (conv && conv->features & PURPLE_CONNECTION_NO_IMAGES)
@@ -269,7 +271,7 @@ static void message_wrote(PurpleAccount *account, const gchar *sender,
     const gchar *message, PurpleConversation *conv, PurpleMessageFlags flags)
 {
     purple_debug_info(PLUGIN_NAME,"message_wrote:\n%s\n",message);
-    g_return_if_fail(originalmsg || logflag);
+    if (!originalmsg && !logflag) return;
     purple_conversation_set_logging(conv, logflag);
     if (!conv->logs)
         conv->logs = g_list_append(NULL, 

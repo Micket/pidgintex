@@ -1,5 +1,5 @@
 = Details =
-Version 1.0.8
+Version 1.1.0
   * Replaced Gregex with purple string utilities, so newer versios now work on windows too.
   * Fixed a few minor memory leaks.
   * Fixed large memory leak (clearing imgstore when closing conversation).
@@ -7,7 +7,7 @@ Version 1.0.8
   * Fixed value for smallest font size (tiny = 0)
   * Uses purples debug log instead of printf, eliminating the need for a debug version.
   * Removed need for mimetex.bat in windows (I had missed -e in mimetex)
-  * Removed system(), thus all need for the previous Ubuntu-hacks.
+  * Removed system() and the need for the previous hacks related to it.
   * Fixed up documentation and licenses. Since I could only find the GPL3 license i also updated it. Hopefull I've done everything right, otherwise feel free to correct me.
 
 Version 1.0.7
