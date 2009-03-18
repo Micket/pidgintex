@@ -1,5 +1,8 @@
 = Details =
 Version 1.1.0
+  * Restructured code to make it easier to embed mimetex as a library call (future goal)
+  * Bad expressions (at least some, as mimetex and mathtex acceps faulty input) no longer stop the rest of the message to be modified.
+  * Alot less notifications, only for the usual errors (use debug window for more information).
   * Replaced Gregex with purple string utilities, so newer versios now work on windows too.
   * Fixed a few minor memory leaks.
   * Fixed large memory leak (clearing imgstore when closing conversation).
