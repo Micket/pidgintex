@@ -77,10 +77,10 @@ static void deleting_conv(PurpleConversation *conv);
   * latex_to_image creates an image from a LaTeX expression.
   * Image must be deleted and string must be freed by caller
   * @param[in] latex Latex expression to be rendered.
-  * @param[out] file_img Path to generated image.
+  * @param[out] filedata Image data as any format supported by libpurple.
+  * @param[out] size Size of image data in bytes.
   * @return TRUE on success, false otherwise
   */
-//static gboolean latex_to_image(gchar *latex, gchar **file_img);
 static gboolean latex_to_image(gchar *latex, gchar **filedata, gsize* size);
 
 /**

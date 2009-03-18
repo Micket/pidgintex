@@ -76,7 +76,6 @@ install: $(PLUGIN_FILE)
 	mkdir -p $(LIB_INSTALL_DIR)
 	cp $(PLUGIN_FILE) $(LIB_INSTALL_DIR)
 
-# Not done
 pot:
 	@echo ========== Creating reference file
 	mkdir -p po
@@ -92,4 +91,4 @@ tar:
 
 clean:
 	@echo ========== Clean
-	rm -f $(PLUGIN)*.so $(PLUGIN)*.dll
+	rm -f $(PLUGIN)*.so $(PLUGIN)*.dll $(PLUGIN).o

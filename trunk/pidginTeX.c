@@ -224,10 +224,10 @@ static void message_send(PurpleAccount *account, gchar *recipient, gchar **messa
         PURPLE_CONV_TYPE_ANY, recipient, account);
     if (conv && conv->features & PURPLE_CONNECTION_NO_IMAGES)
     {
-        purple_debug_error(PLUGIN_NAME, "Image was NOT sent, "
-            "this conversation does not support images.\n");
-        purple_notify_error(NULL, PLUGIN_NAME, _("Image was NOT sent, "
-            "this conversation does not support images."), NULL);
+        purple_debug_error(PLUGIN_NAME, "Image was NOT sent. "
+            "This conversation does not support images.\n");
+        purple_notify_error(NULL, PLUGIN_NAME, _("Image was NOT sent. "
+            "This conversation does not support images."), NULL);
     }
     else 
     {
@@ -277,8 +277,7 @@ static void message_wrote(PurpleAccount *account, const gchar *sender,
             purple_log_write((PurpleLog *)log->data, flags, sender, time(NULL), originalmsg);
             log = log->next;
         }
-        g_free(originalmsg);
-        originalmsg = NULL;
+        g_free(originalmsg); originalmsg = NULL;
     }
 }
 
@@ -338,7 +337,7 @@ static PurplePluginPrefFrame * get_plugin_pref_frame(PurplePlugin *plugin)
     // Select renderer
     ppref = purple_plugin_pref_new_with_name_and_label(
             PREFS_RENDERER,
-            _("Choose a renderer. Program must be installed in path."));
+            _("Choose a renderer. Program must be installed in system path."));
     purple_plugin_pref_set_type(ppref, PURPLE_PLUGIN_PREF_CHOICE);
     purple_plugin_pref_add_choice(ppref, "mimeTeX", "mimetex");
 #ifndef _WIN32
@@ -402,7 +401,7 @@ static PurplePluginPrefFrame * get_plugin_pref_frame(PurplePlugin *plugin)
     // Font Color
     ppref = purple_plugin_pref_new_with_name_and_label(
             PREFS_FONT_COLOR,
-            _("Font color, use default if you have an old version of mimeTeX."));
+            _("Font color. Use default if you have an old version of mimeTeX."));
     purple_plugin_pref_set_type(ppref, PURPLE_PLUGIN_PREF_CHOICE);
     purple_plugin_pref_add_choice(ppref, _("Default"), "");
     purple_plugin_pref_add_choice(ppref, _("Black"),   "black");
