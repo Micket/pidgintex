@@ -28,7 +28,7 @@
 #ifdef ENABLE_NLS
 # include <locale.h>
 # include <libintl.h>
-# define _(String) dgettext (PLUGIN_NAME, String)
+# define _(String) dgettext(PLUGIN_NAME, String)
 # define LOCALEDIR "locale"
 #else
 # define _(String) (String)
@@ -36,9 +36,9 @@
 
 #ifdef _WIN32
 # include <windows.h>
-# ifndef WEXITSTATUS
-#  define WEXITSTATUS(S) (S)
-# endif
+# define WEXITSTATUS(S) (S)
+# define __GNUC_PREREQ(a,b) 0
+# define g_file_get_contents g_file_get_contents_utf8
 #else
 # include <sys/wait.h>
 #endif
@@ -80,7 +80,8 @@ static void deleting_conv(PurpleConversation *conv);
   * @param[out] file_img Path to generated image.
   * @return TRUE on success, false otherwise
   */
-static gboolean latex_to_image(gchar *latex, gchar **file_img);
+//static gboolean latex_to_image(gchar *latex, gchar **file_img);
+static gboolean latex_to_image(gchar *latex, gchar **filedata, gsize* size);
 
 /**
   * Transform LaTeX parts of message into <img="number">.

@@ -28,10 +28,7 @@ CC    = i586-mingw32msvc-cc
 STRIP = i586-mingw32msvc-strip
 
 CFLAGS = \
-		-D"__GNUC_PREREQ(a,b)=0" \
-        -Dg_file_get_contents=g_file_get_contents_utf8 \
 		-I../pidgin-2.5.5/libpurple \
-		-I../win32-dev/gtk_2_0/include \
 		-I../win32-dev/gtk_2_0/include/glib-2.0 \
 		-I../win32-dev/gtk_2_0/lib/glib-2.0/include
 

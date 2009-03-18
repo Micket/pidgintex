@@ -31,10 +31,9 @@ static int execute(gchar *cmd)
     sup.cb          = sizeof(sup);
     sup.wShowWindow = SW_HIDE;
     sup.dwFlags     = STARTF_USESHOWWINDOW;
-
     if (!CreateProcess(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &sup, &pi))
     {
-        purple_notify_error(NULL, PLUGIN_NAME, cmd, NULL);
+        purple_debug_error(PLUGIN_NAME, cmd);
         return -1;
     }
     if (WAIT_OBJECT_0!=WaitForSingleObjectEx(pi.hProcess, INFINITE, FALSE))
@@ -59,31 +58,40 @@ static int execute(gchar *cmd)
 }
 #endif
 
-static gboolean latex_to_image(gchar *tex, gchar **file_img)
+static gboolean latex_to_image(gchar *tex, gchar** filedata, gsize* size)
 {
     purple_debug_info(PLUGIN_NAME,"Rendering expression: %s\n",tex);
-    FILE* tmpfile = purple_mkstemp(file_img,TRUE);
-    if(!*file_img)
-    {
-        purple_debug_error(PLUGIN_NAME, "Couldn't create temporary file.\n");
-        purple_notify_error(NULL, PLUGIN_NAME, _("Couldn't create temporary file."), NULL);
-        return FALSE;
-    }
-    fclose(tmpfile);
+    // Build the options
+    const gchar *renderer   = purple_prefs_get_string(PREFS_RENDERER);
+    const gchar *prepend    = purple_prefs_get_string(PREFS_PREPEND);
+    const gchar *fontcolor  = purple_prefs_get_string(PREFS_FONT_COLOR);
+    const gchar *style      = purple_prefs_get_string(PREFS_STYLE);
+    const gchar *smash      = purple_prefs_get_string(PREFS_SMASH);
+    const gchar *reverse    = purple_prefs_get_bool(PREFS_NEGATE) ? "\\reverse" : "";
+    const gint   fontsize   = purple_prefs_get_int(PREFS_FONT_SIZE);
+    const gboolean usecolor = strlen(fontcolor) > 0;
 
-    const gchar *renderer = purple_prefs_get_string(PREFS_RENDERER);
     gchar* full_path = g_find_program_in_path(renderer);
     if (full_path)
         g_free(full_path);
     else
     {
-        purple_debug_error(PLUGIN_NAME,"Failed to find: %s\n", renderer);
+        purple_debug_error(PLUGIN_NAME,"Failed to find renderer: %s\n", renderer);
         gchar *err_msg = g_strdup_printf(_("Failed to find: %s."
             " Make sure you have it installed or change renderer.\n"),renderer); 
         purple_notify_error(NULL, PLUGIN_NAME, err_msg, NULL);
         g_free(err_msg);
         return FALSE;
     }
+
+    gchar *file_img;
+    FILE* tmpfile = purple_mkstemp(&file_img,TRUE);
+    if(!file_img)
+    {
+        purple_debug_error(PLUGIN_NAME, "Couldn't create temporary file.\n");
+        return FALSE;
+    }
+    fclose(tmpfile);
 
     // Cleaning up the text a bit
     gchar *tex_fixed  = purple_markup_strip_html(tex);
@@ -94,32 +102,24 @@ static gboolean latex_to_image(gchar *tex, gchar **file_img)
     tex_fixed2 = purple_strreplace(tex_fixed, "\"", "''"); 
     g_free(tex_fixed); tex_fixed = tex_fixed2;
 
-    // Build the options
-    const gchar *prepend   = purple_prefs_get_string(PREFS_PREPEND);
-    const gchar *fontcolor = purple_prefs_get_string(PREFS_FONT_COLOR);
-    const gchar *style     = purple_prefs_get_string(PREFS_STYLE);
-    const gchar *smash     = purple_prefs_get_string(PREFS_SMASH);
-    const gchar *reverse   = purple_prefs_get_bool(PREFS_NEGATE) ? "\\reverse" : "";
-    const gint   fontsize  = purple_prefs_get_int(PREFS_FONT_SIZE);
-    const gint   usecolor  = strlen(fontcolor);
     gchar* cmdparam = NULL;
 
     if (!strcmp(renderer, "mimetex"))
     {
         cmdparam = g_strdup_printf(
 #ifdef _WIN32
-    "cmd.exe /C "
+            "cmd.exe /C "
 #endif
-    "%s -s %d \"%s%s%s%s%s{%s %s}\" -e %s",
+            "%s -s %d \"%s%s%s%s%s{%s %s}\" -e %s",
             renderer, fontsize, usecolor ? "\\":"", usecolor ? fontcolor:"", 
-            reverse, style, smash, prepend, tex_fixed, *file_img);
+            reverse, style, smash, prepend, tex_fixed, file_img);
     }
     else //if (!strcmp(renderer,"mathtex"))
     {
         cmdparam = g_strdup_printf( 
             "%s -m 0 \"\\png\\usepackage{color}\\color{%s}%s\\%s %s %s\" -o %s",
             renderer, usecolor ? fontcolor : "black", style,
-            mathfont[fontsize], prepend, tex_fixed, *file_img);
+            mathfont[fontsize], prepend, tex_fixed, file_img);
     }
     g_free(tex_fixed);
 #ifndef _WIN32
@@ -146,6 +146,7 @@ static gboolean latex_to_image(gchar *tex, gchar **file_img)
         purple_notify_error(NULL, PLUGIN_NAME, err_msg, NULL);
         g_free(cmdparam);
         g_free(err_msg);
+        g_unlink(file_img); g_free(file_img);
         return FALSE;
     }
     g_free(cmdparam);
@@ -153,12 +154,21 @@ static gboolean latex_to_image(gchar *tex, gchar **file_img)
     // Ugly hack becuase mathtex makes up it's own filename (appends fileext). sigh
     if (!strcmp(renderer,"mathtex"))
     {
-        gchar* file_img2 = g_strdup_printf("%s.png",*file_img);
-        g_unlink(*file_img);
-        g_free(*file_img);
-        *file_img = file_img2;
+        gchar* file_img2 = g_strdup_printf("%s.png",file_img);
+        g_unlink(file_img);
+        g_free(file_img);
+        file_img = file_img2;
     }
-    return TRUE;
+
+    GError *error = NULL;
+    success = g_file_get_contents(file_img, filedata, size, &error);
+    if (!success)
+    {
+        purple_debug_error(PLUGIN_NAME, error->message);
+        g_error_free(error);
+    }
+    g_unlink(file_img); g_free(file_img);
+    return success;
 }
 
 static gboolean analyse(const gchar *msg, gchar** outmsg, gchar* delimiter)
@@ -174,31 +184,13 @@ static gboolean analyse(const gchar *msg, gchar** outmsg, gchar* delimiter)
             g_string_append(out,split[i]);
         else 
         {
-            gchar* file_img;
             gchar* filedata;
             gsize size;
-            GError *error = NULL;
-
-            if (!latex_to_image(split[i], &file_img))
+            if (!latex_to_image(split[i], &filedata, &size))
             {
-                g_string_free(out,TRUE);
-                g_strfreev(split);
-                return FALSE;
+                g_string_append_printf(out, "$$%s$$ (failed)", split[i]);
+                continue;
             }
-            if (!g_file_get_contents(file_img, &filedata, &size, &error))
-            {
-                purple_debug_error(PLUGIN_NAME, error->message);
-                purple_notify_error(NULL, PLUGIN_NAME, error->message, NULL);
-                g_error_free(error);
-                g_string_free(out,TRUE);
-                g_strfreev(split);
-                g_unlink(file_img);
-                g_free(file_img);
-                return FALSE;
-            }
-            g_unlink(file_img);
-            g_free(file_img);
-
             gchar* name = g_strdup_printf("pidginTeX-%s-%d.png",
                 purple_date_format_long(NULL), imgcounter++);
             gint idimg = purple_imgstore_add_with_id(filedata, size, name);
@@ -206,10 +198,8 @@ static gboolean analyse(const gchar *msg, gchar** outmsg, gchar* delimiter)
             if (idimg == 0)
             {
                 purple_debug_error(PLUGIN_NAME, "Failed to store image. Data size = %d\n",size);
-                purple_notify_error(NULL, PLUGIN_NAME, _("Failed to store image."), NULL);
-                g_string_free(out,TRUE);
-                g_strfreev(split);
-                return FALSE;
+                g_string_append_printf(out, "$$%s$$ (failed)", split[i]);
+                continue;
             }
             imageref = g_list_prepend(imageref,GINT_TO_POINTER(idimg));
             g_string_append_printf(out, "<img id=\"%d\" alt=\"%s\"> %s", 
@@ -227,7 +217,7 @@ static gboolean analyse(const gchar *msg, gchar** outmsg, gchar* delimiter)
  * message before being sent. */
 static void message_send(PurpleAccount *account, gchar *recipient, gchar **message)
 {
-    purple_debug_info(PLUGIN_NAME,"message_send:\n%s\n",*message);
+    //purple_debug_info(PLUGIN_NAME,"message_send:\n%s\n",*message);
     if (!purple_prefs_get_bool(PREFS_SENDIMAGE) || !analyse(*message, &modifiedmsg, TEX_DELIMITER))
         return;
     PurpleConversation* conv = purple_find_conversation_with_account(
@@ -252,11 +242,12 @@ static void message_send(PurpleAccount *account, gchar *recipient, gchar **messa
 static gboolean message_write(PurpleAccount *account, const gchar *sender, 
     gchar **message, PurpleConversation *conv, PurpleMessageFlags flags)
 {
-    purple_debug_info(PLUGIN_NAME,"message_write:\n%s\n",*message);
-    if (!modifiedmsg && !analyse(*message, &modifiedmsg, TEX_DELIMITER))
-        modifiedmsg = NULL;
+    //purple_debug_info(PLUGIN_NAME,"message_write:\n%s\n",*message);
+    if (!modifiedmsg)
+        analyse(*message, &modifiedmsg, TEX_DELIMITER);
     if (modifiedmsg)
     {
+        // We turn off logging to avoid printing the modified message there.
         logflag = purple_conversation_is_logging(conv);
         purple_conversation_set_logging(conv, FALSE);
         originalmsg = *message;
@@ -270,22 +261,25 @@ static gboolean message_write(PurpleAccount *account, const gchar *sender,
 static void message_wrote(PurpleAccount *account, const gchar *sender, 
     const gchar *message, PurpleConversation *conv, PurpleMessageFlags flags)
 {
-    purple_debug_info(PLUGIN_NAME,"message_wrote:\n%s\n",message);
-    if (!originalmsg && !logflag) return;
-    purple_conversation_set_logging(conv, logflag);
-    if (!conv->logs)
-        conv->logs = g_list_append(NULL, 
-            purple_log_new(conv->type == PURPLE_CONV_TYPE_CHAT ? 
-            PURPLE_LOG_CHAT : PURPLE_LOG_IM, 
-            conv->name, conv->account, conv, time(NULL), NULL));
-    GList *log = conv->logs;
-    while (log)
+    //purple_debug_info(PLUGIN_NAME,"message_wrote:\n%s\n",message);
+    // If logging was on and we modified the message we continue and change it back
+    if (originalmsg && logflag)
     {
-        purple_log_write((PurpleLog *)log->data, flags, sender, time(NULL), originalmsg);
-        log = log->next;
+        purple_conversation_set_logging(conv, logflag);
+        if (!conv->logs)
+            conv->logs = g_list_append(NULL, 
+                purple_log_new(conv->type == PURPLE_CONV_TYPE_CHAT ? 
+                PURPLE_LOG_CHAT : PURPLE_LOG_IM, 
+                conv->name, conv->account, conv, time(NULL), NULL));
+        GList *log = conv->logs;
+        while (log)
+        {
+            purple_log_write((PurpleLog *)log->data, flags, sender, time(NULL), originalmsg);
+            log = log->next;
+        }
+        g_free(originalmsg);
+        originalmsg = NULL;
     }
-    g_free(originalmsg);
-    originalmsg = NULL;
 }
 
 /* Emitted when a conversation is deleted. */
@@ -297,6 +291,7 @@ static void deleting_conv(PurpleConversation *conv)
     }
     g_list_foreach(imageref, fun, NULL);
     g_list_free(imageref);
+    imageref = NULL;
 }
 
 static gboolean plugin_load(PurplePlugin *plugin)
