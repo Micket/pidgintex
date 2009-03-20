@@ -7,10 +7,9 @@ If you have this plugin, please be sure not having the 2 working at the same tim
 You need to have mimetex (1.64 preferred,1.50 is definitely to old) [3] or mathtex [4].
 
 WINDOWS:
-Only mimetex is supported in windows. Copy the mimetex.bat file somewhere within your path
-(Placing it in C:\Windows\ would work) and edit the path to mimetex.exe depending 
-on where you have placed it. Mimetex may *not* be in C:\Windows. It is recommended that
-you place it in the plugin folder.
+Only mimetex is supported in windows. 
+Get mimetex.exe and place somewhere within your path
+(Placing it in C:\Windows\ would work)
 A compiled binary of mimetex is available on it's official homepage [3].
 
 How to choose:
