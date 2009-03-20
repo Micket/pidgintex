@@ -33,12 +33,12 @@ static int execute(gchar *cmd)
     sup.dwFlags     = STARTF_USESHOWWINDOW;
     if (!CreateProcess(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &sup, &pi))
     {
-        purple_debug_error(PLUGIN_NAME, cmd);
+        purple_debug_error(PLUGIN_NAME, "Failed to create process for: %s\n",cmd);
         return -1;
     }
     if (WAIT_OBJECT_0!=WaitForSingleObjectEx(pi.hProcess, INFINITE, FALSE))
     {
-        purple_debug_error(PLUGIN_NAME, cmd);
+        purple_debug_error(PLUGIN_NAME, "Wait for single object failed: %s\n", cmd);
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
         return -1;
@@ -47,7 +47,7 @@ static int execute(gchar *cmd)
     {
         if (!GetExitCodeThread(pi.hThread, &exitcode))
         {
-            purple_debug_error(PLUGIN_NAME, cmd);
+            purple_debug_error(PLUGIN_NAME, "Failed to get exit code for: %s\n", cmd);
             return -1;
         }
         Sleep(10);
@@ -107,9 +107,9 @@ static gboolean latex_to_image(gchar *tex, gchar** filedata, gsize* size)
     if (!strcmp(renderer, "mimetex"))
     {
         cmdparam = g_strdup_printf(
-#ifdef _WIN32
-            "cmd.exe /C "
-#endif
+//#ifdef _WIN32
+//            "cmd.exe /C "
+//#endif
             "%s -s %d \"%s%s%s%s%s{%s %s}\" -e %s",
             renderer, fontsize, usecolor ? "\\":"", usecolor ? fontcolor:"", 
             reverse, style, smash, prepend, tex_fixed, file_img);
@@ -152,6 +152,8 @@ static gboolean latex_to_image(gchar *tex, gchar** filedata, gsize* size)
     g_free(cmdparam);
 
     // Ugly hack becuase mathtex makes up it's own filename (appends fileext). sigh
+    // It seems like I'll have to keep it, since the mathtex author seems to 
+    // think this is a good idea.
     if (!strcmp(renderer,"mathtex"))
     {
         gchar* file_img2 = g_strdup_printf("%s.png",file_img);
@@ -173,6 +175,7 @@ static gboolean latex_to_image(gchar *tex, gchar** filedata, gsize* size)
 
 static gboolean analyse(const gchar *msg, gchar** outmsg, gchar* delimiter)
 {
+    if (!*msg) return FALSE; 
     gchar **split = g_strsplit(msg,delimiter,-1);
     if (!split[1]) return FALSE;
     gboolean print_expr = purple_prefs_get_bool(PREFS_PRINTEXPR);
@@ -293,6 +296,23 @@ static void deleting_conv(PurpleConversation *conv)
     imageref = NULL;
 }
 
+#ifdef HISTORY
+/* Emitted when a conversation is created */
+static void history_write(PurpleConversation *c)
+{
+	PidginConversation *gtkconv = PIDGIN_CONVERSATION(c);
+	g_return_if_fail(gtkconv != NULL || gtkconv->imhtml != NULL);
+    gchar* history = gtk_imhtml_get_markup(GTK_IMHTML(gtkconv->imhtml));
+    gchar* modifiedhistory;
+    if (analyse(history, &modifiedhistory, TEX_DELIMITER))
+	{
+        gtk_imhtml_clear(GTK_IMHTML(gtkconv->imhtml));
+		gtk_imhtml_append_text(GTK_IMHTML(gtkconv->imhtml), modifiedhistory, 0);
+		g_free(modifiedhistory);
+    }
+}
+#endif
+
 static gboolean plugin_load(PurplePlugin *plugin)
 {
     void *conv_handle = purple_conversations_get_handle();
@@ -303,6 +323,10 @@ static gboolean plugin_load(PurplePlugin *plugin)
     purple_signal_connect(conv_handle,"sending-im-msg",  plugin,PURPLE_CALLBACK(message_send), NULL);
     purple_signal_connect(conv_handle,"sending-chat-msg",plugin,PURPLE_CALLBACK(message_send), NULL);
     purple_signal_connect(conv_handle,"deleting-conversation",plugin,PURPLE_CALLBACK(deleting_conv), NULL);
+#ifdef HISTORY
+    purple_signal_connect_priority(conv_handle, "conversation-created", plugin,
+        PURPLE_CALLBACK(history_write), NULL, PURPLE_PRIORITY_DEFAULT+1); 
+#endif
     modifiedmsg = NULL;
     return TRUE;
 }
@@ -317,6 +341,9 @@ static gboolean plugin_unload(PurplePlugin * plugin)
     purple_signal_disconnect(conv_handle,"sending-im-msg",  plugin,PURPLE_CALLBACK(message_send));
     purple_signal_disconnect(conv_handle,"sending-chat-msg",plugin,PURPLE_CALLBACK(message_send));
     purple_signal_disconnect(conv_handle,"deleting-conversation",plugin,PURPLE_CALLBACK(deleting_conv));
+#ifdef HISTORY
+    purple_signal_disconnect(conv_handle,"conversation-created",plugin,PURPLE_CALLBACK(history_write)); 
+#endif
     return TRUE;
 }
 
@@ -437,17 +464,17 @@ static PurplePluginInfo info =
     NULL,                                             /**< dependencies   */
     PURPLE_PRIORITY_DEFAULT,                          /**< priority       */
     PLUGIN_ID,                                        /**< id             */
+
     PLUGIN_NAME,                                      /**< name           */
     PLUGIN_VERSION,                                   /**< version        */
     /**<  summary        */
-    // I'm not allowed to translate this?
-    "To display LaTeX formula into Pidgin conversation.",
+    _("To display LaTeX formula into Pidgin conversation."),
     /**<  description    */
-    "Put LaTeX-code between $$ ... $$ markup to have it displayed as a "
+    _("Put LaTeX-code between $$ ... $$ markup to have it displayed as a "
         "picture in your conversation.\n"
         "Remember that your contact needs an similar plugin or else he will "
         "just see the pure LaTeX-code.\n"
-        "You must have mimeTeX or mathTeX installed (in your PATH)",
+        "You must have mimeTeX or mathTeX installed (in your PATH)"),
     /**< author */
     "Mikael Öhman <micketeer@gmail.com>",
     "http://pidgintex.googlecode.com",                /**< homepage       */

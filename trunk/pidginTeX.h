@@ -25,6 +25,11 @@
 #include <glib/gstdio.h>
 #include <string.h>
 
+#ifdef HISTORY
+# include <gtkconv.h>
+# include <gtkimhtml.h>
+#endif
+
 #ifdef ENABLE_NLS
 # include <locale.h>
 # include <libintl.h>
