@@ -65,6 +65,7 @@ static char* mathfont[] = {"tiny","footnotesize","normalsize","large",
                  "Large","LARGE","huge","Huge"};
 
 /* variables for callback functions */
+static gboolean modoff;
 static gboolean logflag;
 static gchar *originalmsg;
 static gchar *modifiedmsg;
