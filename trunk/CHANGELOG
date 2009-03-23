@@ -1,5 +1,6 @@
 = Details =
 Version 1.1.0
+  * Fixed bug where the wrong nick is displayed in the logs.
   * Support to render the output from History (or anything else that prints stuff into Pidgins window. This is not active by default in the soure (as it would make the plugin not a core plugin anymore). Compile with make HISTORY=1.
   * Restructured code to make it easier to embed mimetex as a library call (future goal)
   * Bad expressions (at least some, as mimetex and mathtex acceps faulty input) no longer stop the rest of the message to be modified.

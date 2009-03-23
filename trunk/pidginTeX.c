@@ -103,23 +103,20 @@ static gboolean latex_to_image(gchar *tex, gchar** filedata, gsize* size)
     g_free(tex_fixed); tex_fixed = tex_fixed2;
 
     gchar* cmdparam = NULL;
-
     if (!strcmp(renderer, "mimetex"))
     {
         cmdparam = g_strdup_printf(
-//#ifdef _WIN32
-//            "cmd.exe /C "
-//#endif
-            "%s -s %d \"%s%s%s%s%s{%s %s}\" -e %s",
-            renderer, fontsize, usecolor ? "\\":"", usecolor ? fontcolor:"", 
-            reverse, style, smash, prepend, tex_fixed, file_img);
+            "%s \"\\color{%s}%s\\%s%s%s{%s %s}\" -e %s",
+            renderer, usecolor ? fontcolor : "black", style, mathfont[fontsize],
+            reverse, smash, 
+            prepend, tex_fixed, file_img);
     }
     else //if (!strcmp(renderer,"mathtex"))
     {
         cmdparam = g_strdup_printf( 
-            "%s -m 0 \"\\png\\usepackage{color}\\color{%s}%s\\%s %s %s\" -o %s",
-            renderer, usecolor ? fontcolor : "black", style,
-            mathfont[fontsize], prepend, tex_fixed, file_img);
+            "%s \"\\png\\usepackage{color}\\color{%s}%s\\%s %s %s\" -o %s",
+            renderer, usecolor ? fontcolor : "black", style, mathfont[fontsize], 
+            prepend, tex_fixed, file_img);
     }
     g_free(tex_fixed);
 #ifndef _WIN32
@@ -220,17 +217,20 @@ static gboolean analyse(const gchar *msg, gchar** outmsg, gchar* delimiter)
  * message before being sent. */
 static void message_send(PurpleAccount *account, gchar *recipient, gchar **message)
 {
-    //purple_debug_info(PLUGIN_NAME,"message_send:\n%s\n",*message);
+    purple_debug_info(PLUGIN_NAME,"message_send:\n%s\n",*message);
+    if (modoff) return;
     if (!purple_prefs_get_bool(PREFS_SENDIMAGE) || !analyse(*message, &modifiedmsg, TEX_DELIMITER))
         return;
     PurpleConversation* conv = purple_find_conversation_with_account(
         PURPLE_CONV_TYPE_ANY, recipient, account);
     if (conv && conv->features & PURPLE_CONNECTION_NO_IMAGES)
     {
-        purple_debug_error(PLUGIN_NAME, "Image was NOT sent. "
+        purple_debug_error(PLUGIN_NAME, "Image is not sent. "
             "This conversation does not support images.\n");
-        purple_notify_error(NULL, PLUGIN_NAME, _("Image was NOT sent. "
-            "This conversation does not support images."), NULL);
+        modoff = TRUE;
+        purple_conv_present_error(recipient, account, 
+            _("Image is not sent. This conversation does not support images."));
+        modoff = FALSE;
     }
     else 
     {
@@ -245,7 +245,9 @@ static void message_send(PurpleAccount *account, gchar *recipient, gchar **messa
 static gboolean message_write(PurpleAccount *account, const gchar *sender, 
     gchar **message, PurpleConversation *conv, PurpleMessageFlags flags)
 {
-    //purple_debug_info(PLUGIN_NAME,"message_write:\n%s\n",*message);
+    purple_debug_info(PLUGIN_NAME,"message_write:\n%s\ninvisible=%d\n",*message,
+        flags & PURPLE_MESSAGE_INVISIBLE);
+    if (modoff) return FALSE;
     if (!modifiedmsg)
         analyse(*message, &modifiedmsg, TEX_DELIMITER);
     if (modifiedmsg)
@@ -261,14 +263,51 @@ static gboolean message_write(PurpleAccount *account, const gchar *sender,
 }
 
 /* Emitted after a message is written and possibly displayed in a conversation. */
-static void message_wrote(PurpleAccount *account, const gchar *sender, 
+static void message_wrote(PurpleAccount *account, const gchar *who, 
     const gchar *message, PurpleConversation *conv, PurpleMessageFlags flags)
 {
-    //purple_debug_info(PLUGIN_NAME,"message_wrote:\n%s\n",message);
+    purple_debug_info(PLUGIN_NAME,"message_wrote:\n%s\ninvisible=%d\n",message,
+        flags & PURPLE_MESSAGE_INVISIBLE);
+    if (modoff) return;
     // If logging was on and we modified the message we continue and change it back
     if (originalmsg && logflag)
     {
-        purple_conversation_set_logging(conv, logflag);
+        purple_debug_info(PLUGIN_NAME,"forcing into log:\n%s\n",originalmsg);
+        purple_conversation_set_logging(conv, TRUE);
+        // I wish to replace all of that with this (but it shows up in the message window!): 
+/*      
+        modoff = TRUE;
+        purple_conversation_write(conv, who, originalmsg, 
+            flags | PURPLE_MESSAGE_INVISIBLE, time(NULL));
+        modoff = FALSE;
+        g_free(originalmsg); originalmsg = NULL;
+*/
+        // All this to find the alias of the sender...
+        const gchar *alias = (who == NULL || *who == '\0') ? who : purple_conversation_get_name(conv);
+        PurplePluginProtocolInfo *prpl_info = 
+            PURPLE_PLUGIN_PROTOCOL_INFO(purple_find_prpl(purple_account_get_protocol_id(account)));
+        if (purple_conversation_get_type(conv) == PURPLE_CONV_TYPE_IM ||
+                !(prpl_info->options & OPT_PROTO_UNIQUE_CHATNAME))
+        {
+            PurpleBuddy *b = purple_find_buddy(account,purple_account_get_username(account));
+            if (flags & PURPLE_MESSAGE_SEND) {
+                PurpleConnection *gc = purple_conversation_get_gc(conv);
+                if (purple_account_get_alias(account) != NULL)
+                    alias = account->alias;
+                else if (b != NULL && strcmp(b->name, purple_buddy_get_contact_alias(b)))
+                    alias = purple_buddy_get_contact_alias(b);
+                else if (purple_connection_get_display_name(gc) != NULL)
+                    alias = purple_connection_get_display_name(gc);
+                else
+                    alias = purple_account_get_username(account);
+            }
+            else
+            {
+                b = purple_find_buddy(account, who);
+                if (b) alias = purple_buddy_get_contact_alias(b);
+            }
+        }
+
         if (!conv->logs)
             conv->logs = g_list_append(NULL, 
                 purple_log_new(conv->type == PURPLE_CONV_TYPE_CHAT ? 
@@ -277,7 +316,7 @@ static void message_wrote(PurpleAccount *account, const gchar *sender,
         GList *log = conv->logs;
         while (log)
         {
-            purple_log_write((PurpleLog *)log->data, flags, sender, time(NULL), originalmsg);
+            purple_log_write((PurpleLog *)log->data, flags, alias, time(NULL), originalmsg);
             log = log->next;
         }
         g_free(originalmsg); originalmsg = NULL;
@@ -327,7 +366,8 @@ static gboolean plugin_load(PurplePlugin *plugin)
     purple_signal_connect_priority(conv_handle, "conversation-created", plugin,
         PURPLE_CALLBACK(history_write), NULL, PURPLE_PRIORITY_DEFAULT+1); 
 #endif
-    modifiedmsg = NULL;
+    originalmsg = modifiedmsg = NULL;
+    logflag = modoff = FALSE;
     return TRUE;
 }
 
