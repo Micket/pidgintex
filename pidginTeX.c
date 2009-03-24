@@ -139,7 +139,7 @@ static gboolean latex_to_image(gchar *tex, gchar** filedata, gsize* size)
     {
         purple_debug_error(PLUGIN_NAME, "Failed to execute command: %s\n",cmdparam);
         gchar *err_msg = g_strdup_printf(_("Failed to execute command:\n%s\n"
-            " Something might be wrong in the latex expression.\n"),cmdparam);
+            "Something might be wrong in the latex expression.\n"),cmdparam);
         purple_notify_error(NULL, PLUGIN_NAME, err_msg, NULL);
         g_free(cmdparam);
         g_free(err_msg);
@@ -507,16 +507,9 @@ static PurplePluginInfo info =
 
     PLUGIN_NAME,                                      /**< name           */
     PLUGIN_VERSION,                                   /**< version        */
-    /**<  summary        */
-    _("To display LaTeX formula into Pidgin conversation."),
-    /**<  description    */
-    _("Put LaTeX-code between $$ ... $$ markup to have it displayed as a "
-        "picture in your conversation.\n"
-        "Remember that your contact needs an similar plugin or else he will "
-        "just see the pure LaTeX-code.\n"
-        "You must have mimeTeX or mathTeX installed (in your PATH)"),
-    /**< author */
-    "Mikael Öhman <micketeer@gmail.com>",
+    NULL,                                             /**< summary        */
+    NULL,                                             /**< description    */
+    "Mikael Öhman <micketeer@gmail.com>",             /**< author         */
     "http://pidgintex.googlecode.com",                /**< homepage       */
     plugin_load,                                      /**< load           */
     plugin_unload,                                    /**< unload         */
@@ -534,6 +527,14 @@ static void init_plugin(PurplePlugin *plugin)
 	bindtextdomain(PLUGIN_NAME, LOCALEDIR);
 	bind_textdomain_codeset(PLUGIN_NAME, "UTF-8");
 #endif
+
+    info.summary = _("Renders LaTeX into a conversation.");
+    info.description = _("Put LaTeX code between $$ ... $$ to have it display as a "
+        "picture in your conversation.\n"
+        "Remember that your contact needs an similar plugin or else he will "
+        "just see the code.\n"
+        "You must have mimeTeX or mathTeX installed (in your PATH).");
+
     purple_prefs_add_none  (PREFS_BASE);
     purple_prefs_add_bool  (PREFS_SENDIMAGE,  FALSE);
     purple_prefs_add_bool  (PREFS_PRINTEXPR,  TRUE);
