@@ -19,7 +19,7 @@ You most likely do not want to select this option._
 ===It's not working===
 _Check to see that mimeTeX is installed. 
 You should get a gif image from_
-`$ mimetex -d "x^2" > test.gif`
+`$ mimetex "x^2" -e test.gif`
 _If not, get mimetex or make sure the binary is in some directory that's included in your PATH._
 
 ===Colors aren't working===
@@ -29,8 +29,8 @@ _You need at least a version higher than 1.50. It should work in 1.64. You can c
 =mathTeX=
 ===It's not working===
 _Check to see that mathTeX is installed.
-You should get a png image from_
-`$ mathtex "x^2" -o foo `
+You should get a png image named test.png from_
+`$ mathtex "\\png x^2" -o test `
 _If not, get mathTeX or make sure the binary is in some directory that's included in your PATH._
 
 More to come.
