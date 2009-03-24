@@ -18,7 +18,7 @@
 # along with pidginTeX. If not, see <http://www.gnu.org/licenses/>.
 
 # Translationtions aren't working yet (I think)
-#ENABLE_NLS = 1
+ENABLE_NLS = 1
 #HISTORY = 1
 PLUGIN = pidginTeX
 PLUGIN_VERSION = 1.1.0
@@ -55,6 +55,7 @@ CFLAGS   += -DPLUGIN_NAME=\"$(PLUGIN)\" \
 LDFLAGS  += -shared -Wl,--export-dynamic -Wl,-soname
 ifdef ENABLE_NLS
  LDFLAGS += -lintl
+ CFLAGS += -DENABLE_NLS
 endif
 ifeq ($(PREFIX),)
  LIB_INSTALL_DIR = $(HOME)/.purple/plugins
@@ -77,10 +78,10 @@ install: $(PLUGIN_FILE)
 	mkdir -p $(LIB_INSTALL_DIR)
 	cp $(PLUGIN_FILE) $(LIB_INSTALL_DIR)
 
-pot:
+po:
 	@echo ========== Creating reference file
-	mkdir -p po
-	xgettext -k_ pidginTeX.c -o po/pidginTeX.pot
+	mkdir po
+	xgettext -k_ -p po -d pidginTeX pidginTeX.c
 
 tar:
 	@echo ========== Creating source package $(PLUGIN_DIR).tar.gz
