@@ -1,5 +1,21 @@
 #labels Featured
 = Details =
+Version 1.1.0
+  * Fixed bug where the wrong nick is displayed in the logs.
+  * Support to render the output from History (or anything else that prints stuff into Pidgins window. This is not active by default in the soure (as it would make the plugin not a core plugin anymore). Compile with make HISTORY=1.
+  * Restructured code to make it easier to embed mimetex as a library call (future goal)
+  * Bad expressions (at least some, as mimetex and mathtex acceps faulty input) no longer stop the rest of the message to be modified.
+  * Alot less notifications, only for the usual errors (use debug window for more information).
+  * Replaced Gregex with purple string utilities, so newer versios now work on windows too.
+  * Fixed a few minor memory leaks.
+  * Fixed large memory leak (clearing imgstore when closing conversation).
+  * Major code rewrite, using GLib everywhere now and code looks nicer and 150 LOC shorter.
+  * Fixed value for smallest font size (tiny = 0)
+  * Uses purples debug log instead of printf, eliminating the need for a debug version.
+  * Removed need for mimetex.bat in windows (I had missed -e in mimetex)
+  * Removed system() and the need for the previous hacks related to it.
+  * Fixed up documentation and licenses. Since I could only find the GPL3 license i also updated it. Hopefull I've done everything right, otherwise feel free to correct me.
+
 Version 1.0.7
   * Reverted change in 1.0.6, but added a double escape to \\ strings (i.e \\\\ instead). Now ' works again and also linebreaks.
 
