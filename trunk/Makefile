@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with pidginTeX. If not, see <http://www.gnu.org/licenses/>.
 
-# Translationtions aren't working yet (I think)
 ENABLE_NLS = 1
 #HISTORY = 1
 PLUGIN = pidginTeX
@@ -31,11 +30,15 @@ STRIP = i586-mingw32msvc-strip
 CFLAGS = \
 		-I../pidgin-2.5.5/libpurple \
 		-I../win32-dev/gtk_2_0/include/glib-2.0 \
-		-I../win32-dev/gtk_2_0/lib/glib-2.0/include
+		-I../win32-dev/gtk_2_0/lib/glib-2.0/include \
+		-I../win32-dev/gtk_2_0/include
 
 LDFLAGS = \
 	-L../win32-dev/gtk_2_0/lib -lglib-2.0 \
 	-L../pidgin-2.5.5/libpurple/ -lpurple 
+ifdef ENABLE_NLS
+ LDFLAGS += -lintl
+endif
 
 PLUGIN_FILE = $(PLUGIN).dll
 else 
@@ -48,15 +51,14 @@ PLUGIN_FILE = $(PLUGIN).so
 endif
 
 ############ Both ###########
+ifdef ENABLE_NLS
+ CFLAGS  += -DENABLE_NLS
+endif
 CFLAGS   += -DPLUGIN_NAME=\"$(PLUGIN)\" \
             -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\" \
             -DPLUGIN_ID=\"core-micket-$(PLUGIN_NAME)\" \
             -Wall -c
 LDFLAGS  += -shared -Wl,--export-dynamic -Wl,-soname
-ifdef ENABLE_NLS
- LDFLAGS += -lintl
- CFLAGS += -DENABLE_NLS
-endif
 ifeq ($(PREFIX),)
  LIB_INSTALL_DIR = $(HOME)/.purple/plugins
 else
