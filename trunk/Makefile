@@ -89,7 +89,7 @@ tar:
 	@echo ========== Creating source package $(PLUGIN_DIR).tar.gz
 	rm -rf $(PLUGIN_DIR) $(PLUGIN_DIR).tar.gz
 	mkdir $(PLUGIN_DIR)
-	cp $(PLUGIN).c $(PLUGIN).h Makefile CHANGELOG COPYING README TODO $(PLUGIN_DIR)
+	cp -r po $(PLUGIN).c $(PLUGIN).h Makefile CHANGELOG COPYING README TODO $(PLUGIN_DIR)
 	tar -cv $(PLUGIN_DIR) | gzip -9 -c > $(PLUGIN_DIR).tar.gz
 	rm -r $(PLUGIN_DIR)
 
