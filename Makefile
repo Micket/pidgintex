@@ -24,11 +24,12 @@ PLUGIN_VERSION = 1.1.0
 
 ifdef CROSS
 ############ Windows ###########
+PIDGIN_ROOT = ../pidgin-2.5.5
 CC    = i586-mingw32msvc-cc
 STRIP = i586-mingw32msvc-strip
 
 CFLAGS = \
-		-I../pidgin-2.5.5/libpurple \
+		-I$(PIDGIN_ROOT)/libpurple \
 		-I../win32-dev/gtk_2_0/include/glib-2.0 \
 		-I../win32-dev/gtk_2_0/lib/glib-2.0/include \
 		-I../win32-dev/gtk_2_0/include
@@ -39,6 +40,16 @@ LDFLAGS = \
 ifdef ENABLE_NLS
  LDFLAGS += -lintl
 endif
+ifdef HISTORY
+ CFLAGS += -I$(PIDGIN_ROOT)/pidgin \
+           -I$(PIDGIN_ROOT)/pidgin/win32 \
+           -I../win32-dev/gtk_2_0/include/gtk-2.0 \
+           -I../win32-dev/gtk_2_0/include/pango-1.0 \
+           -I../win32-dev/gtk_2_0/include/atk-1.0 \
+           -I../win32-dev/gtk_2_0/lib/gtk-2.0/include
+ LDFLAGS += -lpidgin -L$(PIDGIN_ROOT)/pidgin \
+            -lgobject-2.0
+endif
 
 PLUGIN_FILE = $(PLUGIN).dll
 else 
@@ -46,11 +57,16 @@ else
 CC = gcc
 STRIP = strip
 CFLAGS  = $(shell pkg-config purple --cflags) -fPIC
-LDFLAGS = $(shell pkg-config purple --libs)
 PLUGIN_FILE = $(PLUGIN).so
+ifdef HISTORY
+ CFLAGS  += $(shell pkg-config pidgin --cflags)
+endif
 endif
 
 ############ Both ###########
+ifdef HISTORY
+ CFLAGS  += -DHISTORY
+endif
 ifdef ENABLE_NLS
  CFLAGS  += -DENABLE_NLS
 endif
