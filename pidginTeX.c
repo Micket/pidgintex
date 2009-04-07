@@ -20,7 +20,7 @@
 
 #include "pidginTeX.h"
 
-#ifdef _WIN32
+#ifdef G_OS_WIN32
 static int execute(gchar *cmd)
 {
     DWORD exitcode = 0;
@@ -119,14 +119,14 @@ static gboolean latex_to_image(gchar *tex, gchar** filedata, gsize* size)
             prepend, tex_fixed, file_img);
     }
     g_free(tex_fixed);
-#ifndef _WIN32
+#ifndef G_OS_WIN32
     gchar* cmdparam2 = purple_strreplace(cmdparam, "\\","\\\\");
     g_free(cmdparam); cmdparam = cmdparam2;
 #endif
 
     purple_debug_info(PLUGIN_NAME,"Trying to execute command: %s\n",cmdparam);
     
-#ifdef _WIN32
+#ifdef G_OS_WIN32
     gint rt = execute(cmdparam);
     gboolean success = rt == 0;
 #else
@@ -139,7 +139,7 @@ static gboolean latex_to_image(gchar *tex, gchar** filedata, gsize* size)
     {
         purple_debug_error(PLUGIN_NAME, "Failed to execute command: %s\n",cmdparam);
         gchar *err_msg = g_strdup_printf(_("Failed to execute command:\n%s\n"
-            "Something might be wrong in the latex expression.\n"),cmdparam);
+            "Something might be wrong in the LaTeX expression.\n"),cmdparam);
         purple_notify_error(NULL, PLUGIN_NAME, err_msg, NULL);
         g_free(cmdparam);
         g_free(err_msg);
@@ -398,7 +398,7 @@ static PurplePluginPrefFrame * get_plugin_pref_frame(PurplePlugin *plugin)
     // Do send image
     ppref = purple_plugin_pref_new_with_name_and_label(
             PREFS_SENDIMAGE,
-            _("Send image. Make sure images can be sent before selecting!"));
+            _("Send image. Make sure images can be sent before selecting."));
     purple_plugin_pref_frame_add(frame, ppref);
 
     // Select renderer
@@ -407,7 +407,7 @@ static PurplePluginPrefFrame * get_plugin_pref_frame(PurplePlugin *plugin)
             _("Choose a renderer. Program must be installed in system path."));
     purple_plugin_pref_set_type(ppref, PURPLE_PLUGIN_PREF_CHOICE);
     purple_plugin_pref_add_choice(ppref, "mimeTeX", "mimetex");
-#ifndef _WIN32
+#ifndef G_OS_WIN32
     purple_plugin_pref_add_choice(ppref, "mathTeX", "mathtex");
 #endif
     purple_plugin_pref_frame_add(frame, ppref);
