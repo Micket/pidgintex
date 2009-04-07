@@ -96,10 +96,10 @@ install: $(PLUGIN_FILE)
 	mkdir -p $(LIB_INSTALL_DIR)
 	cp $(PLUGIN_FILE) $(LIB_INSTALL_DIR)
 
-po:
+pot:
 	@echo ========== Creating reference file
 	mkdir po
-	xgettext -k_ -p po -d pidginTeX pidginTeX.c
+	xgettext -k_ -o po/pidginTeX.pot pidginTeX.c
 
 tar:
 	@echo ========== Creating source package $(PLUGIN_DIR).tar.gz

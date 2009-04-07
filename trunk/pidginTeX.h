@@ -39,7 +39,7 @@
 # define _(String) (String)
 #endif
 
-#ifdef _WIN32
+#ifdef G_OS_WIN32
 # include <windows.h>
 # define WEXITSTATUS(S) (S)
 # define __GNUC_PREREQ(a,b) 0
