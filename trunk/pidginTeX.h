@@ -21,14 +21,12 @@
 #ifndef PIDGINTEX_H
 #define PIDGINTEX_H
 
-#include <purple.h>
 #include <glib/gstdio.h>
 #include <string.h>
-
-#ifdef HISTORY
-# include <gtkconv.h>
-# include <gtkimhtml.h>
-#endif
+#include <purple.h>
+#include <gtkplugin.h>
+#include <gtkconv.h>
+#include <gtkimhtml.h>
 
 #ifdef ENABLE_NLS
 # include <locale.h>
@@ -66,18 +64,16 @@ static char* mathfont[] = {"tiny","footnotesize","normalsize","large",
 
 /* variables for callback functions */
 static gboolean modoff;
-static gboolean logflag;
 static gchar *originalmsg;
 static gchar *modifiedmsg;
 static GList *imageref;
 
-/* to intercept in- and outgoing messages */
-static gboolean message_write(PurpleAccount *account, const gchar *sender, gchar **message, 
-    PurpleConversation *conv, PurpleMessageFlags flags);
-static void message_wrote(PurpleAccount *account, const gchar *sender, 
-    const char *message, PurpleConversation *conv, PurpleMessageFlags flags);
+/* to intercept signals */
 static void message_send(PurpleAccount *account, gchar *recipient, gchar **message);
 static void deleting_conv(PurpleConversation *conv);
+static void history_write(PurpleConversation *c);
+static gboolean displaying_msg(PurpleAccount *account, const char *who,
+    char **message, PurpleConversation *conv, PurpleMessageFlags flags);
 
 /** 
   * latex_to_image creates an image from a LaTeX expression.
@@ -93,9 +89,8 @@ static gboolean latex_to_image(gchar *latex, gchar **filedata, gsize* size);
   * Transform LaTeX parts of message into <img="number">.
   * @param[in] msg Original message.
   * @param[out] outmsg Newly allocated nesssage with images if successfull, otherwise untouched.
-  * @param[in] delimiter LaTeX delimiter, i.e. $$
   * @return TRUE on success, FALSE otherwise
   */
-static gboolean analyse(const gchar *msg, gchar **outmsg, gchar *delimiter);
+static gboolean analyse(const gchar *msg, gchar **outmsg);
 
 #endif

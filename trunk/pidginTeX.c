@@ -114,7 +114,7 @@ static gboolean latex_to_image(gchar *tex, gchar** filedata, gsize* size)
     else //if (!strcmp(renderer,"mathtex"))
     {
         cmdparam = g_strdup_printf( 
-            "%s \"\\png\\usepackage{color}\\color{%s}%s\\%s %s %s\" -o %s",
+            "%s -m 0 \"\\png\\usepackage{color}\\color{%s}%s\\%s %s %s\" -o %s",
             renderer, usecolor ? fontcolor : "black", style, mathfont[fontsize], 
             prepend, tex_fixed, file_img);
     }
@@ -170,10 +170,10 @@ static gboolean latex_to_image(gchar *tex, gchar** filedata, gsize* size)
     return success;
 }
 
-static gboolean analyse(const gchar *msg, gchar** outmsg, gchar* delimiter)
+static gboolean analyse(const gchar *msg, gchar** outmsg)
 {
     if (!*msg) return FALSE; 
-    gchar **split = g_strsplit(msg,delimiter,-1);
+    gchar **split = g_strsplit(msg,TEX_DELIMITER,-1);
     if (!split[1]) return FALSE;
     gboolean print_expr = purple_prefs_get_bool(PREFS_PRINTEXPR);
     GString* out = g_string_sized_new(strlen(msg));
@@ -212,14 +212,12 @@ static gboolean analyse(const gchar *msg, gchar** outmsg, gchar* delimiter)
 }
 
 ////////////////////// Intercepting functions /////////////////////////////////
-/* Emitted before sending an IM to a user. 
- * message is a pointer to the message string, so the plugin can replace the 
- * message before being sent. */
+/* Emitted before sending an IM to a user. */
 static void message_send(PurpleAccount *account, gchar *recipient, gchar **message)
 {
     purple_debug_info(PLUGIN_NAME,"message_send:\n%s\n",*message);
     if (modoff) return;
-    if (!purple_prefs_get_bool(PREFS_SENDIMAGE) || !analyse(*message, &modifiedmsg, TEX_DELIMITER))
+    if (!purple_prefs_get_bool(PREFS_SENDIMAGE) || !analyse(*message, &modifiedmsg))
         return;
     PurpleConversation* conv = purple_find_conversation_with_account(
         PURPLE_CONV_TYPE_ANY, recipient, account);
@@ -239,90 +237,6 @@ static void message_send(PurpleAccount *account, gchar *recipient, gchar **messa
     }
 }
 
-/* Emitted before a message is written in an IM conversation. 
- * If the message is changed, then the changed message is displayed and logged 
- * instead of the original message. */
-static gboolean message_write(PurpleAccount *account, const gchar *sender, 
-    gchar **message, PurpleConversation *conv, PurpleMessageFlags flags)
-{
-    purple_debug_info(PLUGIN_NAME,"message_write:\n%s\ninvisible=%d\n",*message,
-        flags & PURPLE_MESSAGE_INVISIBLE);
-    if (modoff) return FALSE;
-    if (!modifiedmsg)
-        analyse(*message, &modifiedmsg, TEX_DELIMITER);
-    if (modifiedmsg)
-    {
-        // We turn off logging to avoid printing the modified message there.
-        logflag = purple_conversation_is_logging(conv);
-        purple_conversation_set_logging(conv, FALSE);
-        originalmsg = *message;
-        *message    = modifiedmsg;
-        modifiedmsg = NULL;
-    }
-    return FALSE;
-}
-
-/* Emitted after a message is written and possibly displayed in a conversation. */
-static void message_wrote(PurpleAccount *account, const gchar *who, 
-    const gchar *message, PurpleConversation *conv, PurpleMessageFlags flags)
-{
-    purple_debug_info(PLUGIN_NAME,"message_wrote:\n%s\ninvisible=%d\n",message,
-        flags & PURPLE_MESSAGE_INVISIBLE);
-    if (modoff) return;
-    // If logging was on and we modified the message we continue and change it back
-    if (originalmsg && logflag)
-    {
-        purple_debug_info(PLUGIN_NAME,"forcing into log:\n%s\n",originalmsg);
-        purple_conversation_set_logging(conv, TRUE);
-        // I wish to replace all of that with this (but it shows up in the message window!): 
-/*      
-        modoff = TRUE;
-        purple_conversation_write(conv, who, originalmsg, 
-            flags | PURPLE_MESSAGE_INVISIBLE, time(NULL));
-        modoff = FALSE;
-        g_free(originalmsg); originalmsg = NULL;
-*/
-        // All this to find the alias of the sender...
-        const gchar *alias = (who == NULL || *who == '\0') ? who : purple_conversation_get_name(conv);
-        PurplePluginProtocolInfo *prpl_info = 
-            PURPLE_PLUGIN_PROTOCOL_INFO(purple_find_prpl(purple_account_get_protocol_id(account)));
-        if (purple_conversation_get_type(conv) == PURPLE_CONV_TYPE_IM ||
-                !(prpl_info->options & OPT_PROTO_UNIQUE_CHATNAME))
-        {
-            PurpleBuddy *b = purple_find_buddy(account,purple_account_get_username(account));
-            if (flags & PURPLE_MESSAGE_SEND) {
-                PurpleConnection *gc = purple_conversation_get_gc(conv);
-                if (purple_account_get_alias(account) != NULL)
-                    alias = account->alias;
-                else if (b != NULL && strcmp(b->name, purple_buddy_get_contact_alias(b)))
-                    alias = purple_buddy_get_contact_alias(b);
-                else if (purple_connection_get_display_name(gc) != NULL)
-                    alias = purple_connection_get_display_name(gc);
-                else
-                    alias = purple_account_get_username(account);
-            }
-            else
-            {
-                b = purple_find_buddy(account, who);
-                if (b) alias = purple_buddy_get_contact_alias(b);
-            }
-        }
-
-        if (!conv->logs)
-            conv->logs = g_list_append(NULL, 
-                purple_log_new(conv->type == PURPLE_CONV_TYPE_CHAT ? 
-                PURPLE_LOG_CHAT : PURPLE_LOG_IM, 
-                conv->name, conv->account, conv, time(NULL), NULL));
-        GList *log = conv->logs;
-        while (log)
-        {
-            purple_log_write((PurpleLog *)log->data, flags, alias, time(NULL), originalmsg);
-            log = log->next;
-        }
-        g_free(originalmsg); originalmsg = NULL;
-    }
-}
-
 /* Emitted when a conversation is deleted. */
 static void deleting_conv(PurpleConversation *conv)
 {
@@ -335,7 +249,6 @@ static void deleting_conv(PurpleConversation *conv)
     imageref = NULL;
 }
 
-#ifdef HISTORY
 /* Emitted when a conversation is created */
 static void history_write(PurpleConversation *c)
 {
@@ -343,47 +256,52 @@ static void history_write(PurpleConversation *c)
 	g_return_if_fail(gtkconv != NULL || gtkconv->imhtml != NULL);
     gchar* history = gtk_imhtml_get_markup(GTK_IMHTML(gtkconv->imhtml));
     gchar* modifiedhistory;
-    if (analyse(history, &modifiedhistory, TEX_DELIMITER))
+    if (analyse(history, &modifiedhistory))
 	{
         gtk_imhtml_clear(GTK_IMHTML(gtkconv->imhtml));
 		gtk_imhtml_append_text(GTK_IMHTML(gtkconv->imhtml), modifiedhistory, 0);
 		g_free(modifiedhistory);
     }
 }
-#endif
+
+/* Emitted when a message is about to be displayed */
+static gboolean displaying_msg(PurpleAccount *account, const char *who,
+    char **message, PurpleConversation *conv, PurpleMessageFlags flags)
+{
+    purple_debug_info(PLUGIN_NAME, "displaying_msg: %s\n",*message);
+    if (modifiedmsg || analyse(*message, &modifiedmsg))
+    {
+        g_free(*message);
+        *message = modifiedmsg;
+        modifiedmsg = NULL;
+    }
+    return FALSE;
+}
 
 static gboolean plugin_load(PurplePlugin *plugin)
 {
-    void *conv_handle = purple_conversations_get_handle();
-    purple_signal_connect(conv_handle,"writing-im-msg",  plugin,PURPLE_CALLBACK(message_write), NULL);
-    purple_signal_connect(conv_handle,"writing-chat-msg",plugin,PURPLE_CALLBACK(message_write), NULL);
-    purple_signal_connect(conv_handle,"wrote-im-msg",    plugin,PURPLE_CALLBACK(message_wrote), NULL);
-    purple_signal_connect(conv_handle,"wrote-chat-msg",  plugin,PURPLE_CALLBACK(message_wrote), NULL);
-    purple_signal_connect(conv_handle,"sending-im-msg",  plugin,PURPLE_CALLBACK(message_send), NULL);
-    purple_signal_connect(conv_handle,"sending-chat-msg",plugin,PURPLE_CALLBACK(message_send), NULL);
-    purple_signal_connect(conv_handle,"deleting-conversation",plugin,PURPLE_CALLBACK(deleting_conv), NULL);
-#ifdef HISTORY
-    purple_signal_connect_priority(conv_handle, "conversation-created", plugin,
-        PURPLE_CALLBACK(history_write), NULL, PURPLE_PRIORITY_DEFAULT+1); 
-#endif
+    void *purple_handle = purple_conversations_get_handle();
+    void *pidgin_handle = pidgin_conversations_get_handle();
+    purple_signal_connect(purple_handle,"sending-im-msg",       plugin,PURPLE_CALLBACK(message_send), NULL);
+    purple_signal_connect(purple_handle,"deleting-conversation",plugin,PURPLE_CALLBACK(deleting_conv), NULL);
+    purple_signal_connect_priority(purple_handle, "conversation-created", plugin,
+        PURPLE_CALLBACK(history_write), NULL, PURPLE_PRIORITY_HIGHEST); 
+    purple_signal_connect(pidgin_handle,"displaying-im-msg",    plugin,PURPLE_CALLBACK(displaying_msg), NULL);
+    purple_signal_connect(pidgin_handle,"displaying-chat-msg",  plugin,PURPLE_CALLBACK(displaying_msg), NULL);
     originalmsg = modifiedmsg = NULL;
-    logflag = modoff = FALSE;
+    modoff = FALSE;
     return TRUE;
 }
 
 static gboolean plugin_unload(PurplePlugin * plugin)
 {
-    void *conv_handle = purple_conversations_get_handle();
-    purple_signal_disconnect(conv_handle,"writing-im-msg",  plugin,PURPLE_CALLBACK(message_write));
-    purple_signal_disconnect(conv_handle,"writing-chat-mg", plugin,PURPLE_CALLBACK(message_write));
-    purple_signal_disconnect(conv_handle,"wrote-im-msg",    plugin,PURPLE_CALLBACK(message_wrote));
-    purple_signal_disconnect(conv_handle,"wrote-chat-msg",  plugin,PURPLE_CALLBACK(message_wrote));
-    purple_signal_disconnect(conv_handle,"sending-im-msg",  plugin,PURPLE_CALLBACK(message_send));
-    purple_signal_disconnect(conv_handle,"sending-chat-msg",plugin,PURPLE_CALLBACK(message_send));
-    purple_signal_disconnect(conv_handle,"deleting-conversation",plugin,PURPLE_CALLBACK(deleting_conv));
-#ifdef HISTORY
-    purple_signal_disconnect(conv_handle,"conversation-created",plugin,PURPLE_CALLBACK(history_write)); 
-#endif
+    void *purple_handle = purple_conversations_get_handle();
+    void *pidgin_handle = pidgin_conversations_get_handle();
+    purple_signal_disconnect(purple_handle,"sending-im-msg",       plugin,PURPLE_CALLBACK(message_send));
+    purple_signal_disconnect(purple_handle,"deleting-conversation",plugin,PURPLE_CALLBACK(deleting_conv));
+    purple_signal_disconnect(purple_handle,"conversation-created", plugin,PURPLE_CALLBACK(history_write)); 
+    purple_signal_disconnect(pidgin_handle,"displaying-im-msg",    plugin,PURPLE_CALLBACK(displaying_msg));
+    purple_signal_disconnect(pidgin_handle,"displaying-chat-msg",  plugin,PURPLE_CALLBACK(displaying_msg));
     return TRUE;
 }
 
@@ -398,7 +316,7 @@ static PurplePluginPrefFrame * get_plugin_pref_frame(PurplePlugin *plugin)
     // Do send image
     ppref = purple_plugin_pref_new_with_name_and_label(
             PREFS_SENDIMAGE,
-            _("Send image. Make sure images can be sent before selecting."));
+            _("Send image in IM. Make sure images can be sent before selecting."));
     purple_plugin_pref_frame_add(frame, ppref);
 
     // Select renderer
@@ -499,7 +417,7 @@ static PurplePluginInfo info =
     PURPLE_MAJOR_VERSION,
     PURPLE_MINOR_VERSION,
     PURPLE_PLUGIN_STANDARD,                           /**< type           */
-    NULL,                                             /**< ui_requirement */
+    PIDGIN_PLUGIN_TYPE,                               /**< ui_requirement */
     0,                                                /**< flags          */
     NULL,                                             /**< dependencies   */
     PURPLE_PRIORITY_DEFAULT,                          /**< priority       */
