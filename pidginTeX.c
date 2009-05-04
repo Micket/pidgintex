@@ -208,7 +208,7 @@ static gboolean analyse(const gchar *msg, gchar** outmsg)
     }
     g_strfreev(split);
     *outmsg = g_string_free(out,FALSE);
-    purple_debug_info(PLUGIN_NAME, "Modified message: %s\n",outmsg);
+    purple_debug_info(PLUGIN_NAME, "Modified message: %s\n",*outmsg);
     return TRUE;
 }
 
