@@ -2,7 +2,7 @@
 = Details =
 Version 1.1.1
   * Major bugfix; Incorrect handling of chat signals caused all chats to crash (but not normal IM), now fixed.
-  * For several reasons, i decided to drop the plugin as a core plugin, and have it be a Pidgin plugin this let me drop 70 lines of hackish code. Since it most people still have their optiosn under core- I'm leaving that for now.
+  * For several reasons, i decided to drop the plugin as a core plugin, and have it be a Pidgin plugin this let me drop 70 lines of hackish code. Since it most people still have their options under core- I'm leaving that for now.
 
 Version 1.1.0
   * Fixed bug where the wrong nick is displayed in the logs.
