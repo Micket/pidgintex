@@ -46,7 +46,9 @@
 # include <sys/wait.h>
 #endif
 
-#define TEX_DELIMITER    "$$"
+// It's actually not a core plugin, but it's kept like this for historical reasons.
+// (in order to keep old settings from when pidgintex was a core plugin)
+// Changing it is no big deal, but users might complain. Your call.
 #define PREFS_BASE       "/plugins/core/" PLUGIN_NAME
 #define PREFS_SENDIMAGE  (PREFS_BASE "/sendimage")
 #define PREFS_PREPEND    (PREFS_BASE "/prepend")
@@ -57,6 +59,7 @@
 #define PREFS_STYLE      (PREFS_BASE "/style")
 #define PREFS_FONT_SIZE  (PREFS_BASE "/fontsize")
 #define PREFS_FONT_COLOR (PREFS_BASE "/fontcolor")
+#define TEX_DELIMITER    "$$"
 
 /* font sizes for mathTeX */
 static char* mathfont[] = {"tiny","footnotesize","normalsize","large",
