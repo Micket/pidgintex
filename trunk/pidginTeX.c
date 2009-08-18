@@ -197,7 +197,7 @@ static gboolean analyse(const gchar *msg, gchar** outmsg)
             g_free(name);
             if (idimg == 0)
             {
-                purple_debug_error(PLUGIN_NAME, "Failed to store image. Data size = %d\n",size);
+                purple_debug_error(PLUGIN_NAME, "Failed to store image. Data size = %d\n",(gint)size);
                 g_string_append_printf(out, "$$%s$$ (failed)", split[i]);
                 continue;
             }
@@ -217,7 +217,6 @@ static gboolean analyse(const gchar *msg, gchar** outmsg)
 static void message_send(PurpleAccount *account, gchar *recipient, gchar **message)
 {
     purple_debug_info(PLUGIN_NAME,"message_send:\n%s\n",*message);
-    if (modoff) return;
     if (!purple_prefs_get_bool(PREFS_SENDIMAGE) || !analyse(*message, &modifiedmsg))
         return;
     PurpleConversation* conv = purple_find_conversation_with_account(
@@ -227,6 +226,7 @@ static void message_send(PurpleAccount *account, gchar *recipient, gchar **messa
         purple_debug_error(PLUGIN_NAME, "Image is not sent. "
             "This conversation does not support images.\n");
         modoff = TRUE;
+        // This triggers another "displaying_msg", thus the need to turn that off for a moment.
         purple_conv_present_error(recipient, account, 
             _("Image is not sent. This conversation does not support images."));
         modoff = FALSE;
@@ -270,7 +270,7 @@ static gboolean displaying_msg(PurpleAccount *account, const char *who,
     char **message, PurpleConversation *conv, PurpleMessageFlags flags)
 {
     purple_debug_info(PLUGIN_NAME, "displaying_msg: %s\n",*message);
-    if (modifiedmsg || analyse(*message, &modifiedmsg))
+    if (!modoff && (modifiedmsg || analyse(*message, &modifiedmsg)))
     {
         g_free(*message);
         *message = modifiedmsg;
