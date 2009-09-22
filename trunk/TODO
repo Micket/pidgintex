@@ -1,5 +1,5 @@
 =pidginTeX TODO list=
-
-* 	Eventually look if it's possible to display LaTeX image in the 
-	history overview
+* Mismatching $$ turns out ugly when looking at the history.
+* Eventually look if it's possible to display LaTeX image in the 
+  history overview
 
