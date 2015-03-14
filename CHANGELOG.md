@@ -1,0 +1,52 @@
+# Details #
+Version 1.1.1
+  * Major bugfix; Incorrect handling of chat signals caused all chats to crash (but not normal IM), now fixed.
+  * For several reasons, i decided to drop the plugin as a core plugin, and have it be a Pidgin plugin this let me drop 70 lines of hackish code. Since it most people still have their options under core- I'm leaving that for now.
+
+Version 1.1.0
+  * Fixed bug where the wrong nick is displayed in the logs.
+  * Support to render the output from History (or anything else that prints stuff into Pidgins window. This is not active by default in the soure (as it would make the plugin not a core plugin anymore). Compile with make HISTORY=1.
+  * Restructured code to make it easier to embed mimetex as a library call (future goal)
+  * Bad expressions (at least some, as mimetex and mathtex acceps faulty input) no longer stop the rest of the message to be modified.
+  * Alot less notifications, only for the usual errors (use debug window for more information).
+  * Replaced Gregex with purple string utilities, so newer versios now work on windows too.
+  * Fixed a few minor memory leaks.
+  * Fixed large memory leak (clearing imgstore when closing conversation).
+  * Major code rewrite, using GLib everywhere now and code looks nicer and 150 LOC shorter.
+  * Fixed value for smallest font size (tiny = 0)
+  * Uses purples debug log instead of printf, eliminating the need for a debug version.
+  * Removed need for mimetex.bat in windows (I had missed -e in mimetex)
+  * Removed system() and the need for the previous hacks related to it.
+  * Fixed up documentation and licenses. Since I could only find the GPL3 license i also updated it. Hopefull I've done everything right, otherwise feel free to correct me.
+
+Version 1.0.7
+  * Reverted change in 1.0.6, but added a double escape to \\ strings (i.e \\\\ instead). Now ' works again and also linebreaks.
+
+Version 1.0.6
+  * Change " to ' when sending system calls. Stops the terminal from removing an escapesequence, for example  \\ to \. This should make it easier to have linebreaks in for example arrays.
+
+Version 1.0.5
+  * Fixed Ubuntu-bug where system() returned errors. There are still errors, but i'm just ignoring them at they still seem to work
+
+Version 1.0.4
+  * Fixed makefile to only require purple-dev, not pidgin-dev
+  * Support for windows. See wiki pages or README
+
+Version 1.0.3
+  * Fixed cross compilation for Win32
+  * Fixed escaped apostrohpes (prime sign ')
+  * Added DEBUG option in makefile. Prints out debug information if compiled with DEBUG set.
+
+Version 1.0.2
+  * Fixed bug where incoming message were not rendered.
+  * Improved error message for missing renderer.
+  * Fixed silly mistake in header file
+
+Version 1.0.1
+  * Warning message when image can't be sent.
+  * Redesign of signal handling.
+  * Removed potential (but inlikely) memory leak.
+
+Version 1.0.0
+  * Initial version
+  * Made pidgin-mimetex from pidgin-LaTeX
